@@ -1,0 +1,22 @@
+{
+  "name": "yt-filter",
+  "version": "1.0.0",
+  "description": "YouTube video filter Chrome extension",
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "build:prod": "webpack --mode production"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.18.2",
+  "devDependencies": {
+    "@types/chrome": "^0.1.24",
+    "copy-webpack-plugin": "^13.0.1",
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.9.3",
+    "webpack": "^5.102.1",
+    "webpack-cli": "^6.0.1"
+  }
+}

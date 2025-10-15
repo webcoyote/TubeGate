@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Video Filter</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>YouTube Filter</h1>
+      <span class="version">v1.0.0</span>
+    </header>
+
+    <div class="description">
+      Automatically hides unwanted YouTube videos based on title keywords
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-value" id="blockedCount">0</div>
+        <div class="stat-label">Videos Blocked Today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="filterCount">0</div>
+        <div class="stat-label">Active Filters</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="filters">Filters</button>
+      <button class="tab-btn" data-tab="settings">Settings</button>
+    </div>
+
+    <div class="tab-content active" id="filters-tab">
+      <section class="section">
+        <h2>Default Filters</h2>
+        <div class="toggle-container">
+          <label class="toggle">
+            <input type="checkbox" id="defaultFiltersToggle">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="toggle-label">Enable Default Filters</span>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Your Custom Filters</h2>
+        <div class="filter-list" id="customFiltersList">
+          <!-- Filters will be added here dynamically -->
+        </div>
+
+        <div class="add-filter">
+          <input
+            type="text"
+            id="newFilterInput"
+            placeholder="Add keyword to filter..."
+            maxlength="50"
+          >
+          <button id="addFilterBtn" class="btn-primary">Add</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="settings-tab">
+      <section class="section">
+        <h2>Settings</h2>
+        <p class="info-text">Filter settings are synced across your Chrome browsers.</p>
+        <button id="resetStatsBtn" class="btn-secondary">Reset Statistics</button>
+      </section>
+    </div>
+
+    <footer>
+      <button id="feedbackBtn" class="btn-link">Send Feedback</button>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
