@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "TubeGate",
   "version": "1.0.0",
-  "description": "Control your YouTube feed - filter videos by title and channel",
+  "description": "TubeGate - filter your YouTube feed to hide unwanted content",
   "permissions": [
     "storage"
   ],

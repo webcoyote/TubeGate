@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+trap 'echo "${BASH_SOURCE[0]}: line $LINENO: $BASH_COMMAND: exitcode $?"' ERR
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/.."
+
+# Colors for output
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo -e "${BLUE}Building production version...${NC}"
+
+# Get version from package.json
+VERSION=$(node -p "require('./package.json').version")
+APP_NAME=$(node -p "require('./package.json').name")
+
+echo -e "${BLUE}App: ${APP_NAME}${NC}"
+echo -e "${BLUE}Version: ${VERSION}${NC}"
+
+# Run production build
+echo -e "${BLUE}Running webpack production build...${NC}"
+pnpm run build:prod
+
+# Create releases directory if it doesn't exist
+RELEASE_DIR="releases/${APP_NAME}-v${VERSION}"
+mkdir -p "$RELEASE_DIR"
+
+# Copy dist contents to release directory
+echo -e "${BLUE}Copying build to ${RELEASE_DIR}...${NC}"
+cp -r dist/* "$RELEASE_DIR/"
+
+# Create zip file
+ZIP_FILE="releases/${APP_NAME}-v${VERSION}.zip"
+echo -e "${BLUE}Creating archive: ${ZIP_FILE}${NC}"
+cd releases
+zip -r "${APP_NAME}-v${VERSION}.zip" "${APP_NAME}-v${VERSION}" > /dev/null
+cd ..
+
+echo -e "${GREEN}✓ Build complete!${NC}"
+echo -e "${GREEN}✓ Release directory: ${RELEASE_DIR}${NC}"
+echo -e "${GREEN}✓ Archive: ${ZIP_FILE}${NC}"

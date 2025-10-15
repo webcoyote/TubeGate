@@ -1,7 +1,7 @@
 {
   "name": "tubegate",
   "version": "1.0.0",
-  "description": "TubeGate - Filter your YouTube feed",
+  "description": "TubeGate - filter your YouTube feed to hide unwanted content",
   "scripts": {
     "build": "webpack",
     "watch": "webpack --watch",
