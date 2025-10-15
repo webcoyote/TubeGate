@@ -24,6 +24,8 @@ class PopupController {
   private feedbackBtn: HTMLElement;
   private enabledToggle: HTMLInputElement;
   private syncToggle: HTMLInputElement;
+  private tabButtons: NodeListOf<HTMLElement>;
+  private tabContents: NodeListOf<HTMLElement>;
 
   constructor() {
     this.filtersTextarea = document.getElementById('filtersTextarea') as HTMLTextAreaElement;
@@ -32,6 +34,8 @@ class PopupController {
     this.feedbackBtn = document.getElementById('feedbackBtn')!;
     this.enabledToggle = document.getElementById('enabledToggle') as HTMLInputElement;
     this.syncToggle = document.getElementById('syncToggle') as HTMLInputElement;
+    this.tabButtons = document.querySelectorAll('.tab-button');
+    this.tabContents = document.querySelectorAll('.tab-content');
 
     this.init();
   }
@@ -46,7 +50,8 @@ class PopupController {
     this.saveFiltersBtn.addEventListener('click', () => this.saveFilters());
 
     // Feedback
-    this.feedbackBtn.addEventListener('click', () => {
+    this.feedbackBtn.addEventListener('click', (e) => {
+      e.preventDefault();
       chrome.tabs.create({ url: 'https://github.com/webcoyote/TubeGate/issues' });
     });
 
@@ -55,6 +60,16 @@ class PopupController {
 
     // Sync toggle
     this.syncToggle.addEventListener('change', () => this.toggleSync());
+
+    // Tab switching
+    this.tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabName = button.getAttribute('data-tab');
+        if (tabName) {
+          this.switchTab(tabName);
+        }
+      });
+    });
 
     // Keyboard shortcuts
     document.addEventListener('keydown', (event) => this.handleKeyboardShortcuts(event));
@@ -65,6 +80,30 @@ class PopupController {
     if ((event.metaKey || event.ctrlKey) && event.key === 's') {
       event.preventDefault();
       this.saveFilters();
+    }
+  }
+
+  private switchTab(tabName: string) {
+    // Remove active class from all tab buttons
+    this.tabButtons.forEach(button => {
+      button.classList.remove('active');
+    });
+
+    // Hide all tab contents
+    this.tabContents.forEach(content => {
+      (content as HTMLElement).style.display = 'none';
+    });
+
+    // Add active class to clicked tab button
+    const activeButton = document.querySelector(`.tab-button[data-tab="${tabName}"]`);
+    if (activeButton) {
+      activeButton.classList.add('active');
+    }
+
+    // Show corresponding tab content
+    const activeContent = document.getElementById(`${tabName}Tab`);
+    if (activeContent) {
+      activeContent.style.display = 'block';
     }
   }
 

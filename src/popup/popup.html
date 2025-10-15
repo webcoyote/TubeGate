@@ -26,38 +26,49 @@
       Control your YouTube feed by filtering channels and titles
     </div>
 
-    <div class="settings-section">
-      <div class="setting-row">
-        <div class="setting-info">
-          <span class="setting-label">Sync across browsers</span>
-          <span class="setting-description">Synchronize filters across all browsers where you're signed in</span>
+    <div class="tabs">
+      <button class="tab-button active" data-tab="filters">Filters</button>
+      <button class="tab-button" data-tab="settings">Settings</button>
+    </div>
+
+    <div class="tab-content" id="filtersTab">
+      <div class="main-content">
+        <div class="content-right">
+          <section class="section">
+            <div class="help-text">
+              Keywords to filter (one per line, or separated by commas). Use # for comments.
+            </div>
+            <textarea
+              id="filtersTextarea"
+              placeholder="keyword1&#10;keyword2, keyword3&#10;# This is a comment&#10;"
+              rows="15"
+            ></textarea>
+            <div class="save-section">
+              <button id="saveFiltersBtn" class="btn-primary">Save Filters</button>
+              <div class="right-section">
+                <span id="filterCount" class="filter-count">0 active filters</span>
+              </div>
+            </div>
+          </section>
         </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="syncToggle" checked>
-          <span class="toggle-slider"></span>
-        </label>
       </div>
     </div>
 
-    <div class="main-content">
-      <div class="content-right">
-        <section class="section">
-          <div class="help-text">
-            Keywords to filter (one per line, or separated by commas). Use # for comments.
+    <div class="tab-content" id="settingsTab" style="display: none;">
+      <div class="settings-section">
+        <div class="setting-row">
+          <div class="setting-info">
+            <span class="setting-label">Sync across browsers</span>
+            <span class="setting-description">Synchronize filters across all browsers where you're signed in</span>
           </div>
-          <textarea
-            id="filtersTextarea"
-            placeholder="keyword1&#10;keyword2, keyword3&#10;# This is a comment&#10;"
-            rows="15"
-          ></textarea>
-          <div class="save-section">
-            <button id="saveFiltersBtn" class="btn-primary">Save Filters</button>
-            <div class="right-section">
-              <span id="filterCount" class="filter-count">0 active filters</span>
-              <button id="feedbackBtn" class="btn-link">Feedback</button>
-            </div>
-          </div>
-        </section>
+          <label class="toggle-switch">
+            <input type="checkbox" id="syncToggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="feedback-section">
+        <a id="feedbackBtn" class="btn-link" href="#">Send Feedback</a>
       </div>
     </div>
 
