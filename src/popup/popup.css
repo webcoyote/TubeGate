@@ -50,43 +50,6 @@ h1 {
   flex: 1;
 }
 
-.tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-  border-bottom: 2px solid #e1e8ed;
-}
-
-.tab-btn {
-  flex: 1;
-  padding: 12px;
-  background: none;
-  border: none;
-  font-size: 14px;
-  font-weight: 600;
-  color: #95a5a6;
-  cursor: pointer;
-  transition: all 0.2s;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -2px;
-}
-
-.tab-btn:hover {
-  color: #667eea;
-}
-
-.tab-btn.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
-}
-
-.tab-content {
-  display: none;
-}
-
-.tab-content.active {
-  display: block;
-}
 
 .section {
   margin-bottom: 24px;
@@ -195,7 +158,15 @@ h2 {
 .save-section {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
+}
+
+.right-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
 }
 
 .filter-count {

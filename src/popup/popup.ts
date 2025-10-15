@@ -18,16 +18,12 @@
 import { Storage } from '../utils/storage';
 
 class PopupController {
-  private tabBtns: NodeListOf<HTMLElement>;
-  private tabContents: NodeListOf<HTMLElement>;
   private filtersTextarea: HTMLTextAreaElement;
   private saveFiltersBtn: HTMLElement;
   private filterCountEl: HTMLElement;
   private feedbackBtn: HTMLElement;
 
   constructor() {
-    this.tabBtns = document.querySelectorAll('.tab-btn');
-    this.tabContents = document.querySelectorAll('.tab-content');
     this.filtersTextarea = document.getElementById('filtersTextarea') as HTMLTextAreaElement;
     this.saveFiltersBtn = document.getElementById('saveFiltersBtn')!;
     this.filterCountEl = document.getElementById('filterCount')!;
@@ -42,27 +38,12 @@ class PopupController {
   }
 
   private setupEventListeners() {
-    // Tab switching
-    this.tabBtns.forEach(btn => {
-      btn.addEventListener('click', () => this.switchTab(btn.dataset.tab!));
-    });
-
     // Save filters
     this.saveFiltersBtn.addEventListener('click', () => this.saveFilters());
 
     // Feedback
     this.feedbackBtn.addEventListener('click', () => {
       chrome.tabs.create({ url: 'https://github.com/webcoyote/yt-filter/issues' });
-    });
-  }
-
-  private switchTab(tabName: string) {
-    this.tabBtns.forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.tab === tabName);
-    });
-
-    this.tabContents.forEach(content => {
-      content.classList.toggle('active', content.id === `${tabName}-tab`);
     });
   }
 

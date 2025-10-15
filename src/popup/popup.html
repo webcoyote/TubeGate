@@ -19,38 +19,23 @@
 
     <div class="main-content">
       <div class="content-right">
-        <div class="tabs">
-          <button class="tab-btn active" data-tab="filters">Filters</button>
-          <button class="tab-btn" data-tab="settings">Settings</button>
-        </div>
-
-        <div class="tab-content active" id="filters-tab">
-          <section class="section">
-            <h2>Filter Keywords</h2>
-            <div class="help-text">
-              Keywords to filter (one per line, or separated by commas). Use # for comments.
-            </div>
-            <textarea
-              id="filtersTextarea"
-              placeholder="keyword1&#10;keyword2, keyword3&#10;# This is a comment&#10;keyword4; keyword5"
-              rows="12"
-            ></textarea>
-            <div class="save-section">
-              <button id="saveFiltersBtn" class="btn-primary">Save Filters</button>
+        <section class="section">
+          <div class="help-text">
+            Keywords to filter (one per line, or separated by commas). Use # for comments.
+          </div>
+          <textarea
+            id="filtersTextarea"
+            placeholder="keyword1&#10;keyword2, keyword3&#10;# This is a comment&#10;keyword4; keyword5"
+            rows="15"
+          ></textarea>
+          <div class="save-section">
+            <button id="saveFiltersBtn" class="btn-primary">Save Filters</button>
+            <div class="right-section">
               <span id="filterCount" class="filter-count">0 active filters</span>
+              <button id="feedbackBtn" class="btn-link">Feedback</button>
             </div>
-          </section>
-        </div>
-
-        <div class="tab-content" id="settings-tab">
-          <section class="section">
-            <h2>Settings</h2>
-            <p class="info-text">Filter settings are synced across your Chrome browsers.</p>
-            <div style="margin-top: 20px;">
-              <button id="feedbackBtn" class="btn-link">Send Feedback</button>
-            </div>
-          </section>
-        </div>
+          </div>
+        </section>
       </div>
     </div>
 
