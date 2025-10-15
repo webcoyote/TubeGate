@@ -53,18 +53,23 @@ class YouTubeFilter {
   private filterExistingVideos() {
     // YouTube uses different selectors for different pages
     const selectors = [
-      'ytd-video-renderer',              // Home feed (desktop)
-      'ytd-grid-video-renderer',         // Grid view (desktop)
-      'ytd-rich-item-renderer',          // Rich grid (new home desktop)
-      'ytd-compact-video-renderer',      // Sidebar (desktop)
-      'ytm-shorts-lockup-view-model',    // Shorts (mobile/desktop)
-      'ytd-reel-item-renderer'           // Shorts shelf (desktop)
+      'ytd-video-renderer',                  // Home feed (desktop)
+      'ytd-grid-video-renderer',             // Grid view (desktop)
+      'ytd-rich-item-renderer',              // Rich grid (new home desktop)
+      'ytd-compact-video-renderer',          // Sidebar (desktop)
+      'ytm-shorts-lockup-view-model',        // Shorts (mobile/desktop)
+      'ytd-reel-item-renderer',              // Shorts shelf (desktop)
+      'ytd-ad-slot-renderer',                // Ad slot containers
+      'ytd-in-feed-ad-layout-renderer',      // In-feed ads
+      'ytd-display-ad-renderer',             // Display ads
+      'ytd-promoted-sparkles-web-renderer',  // Promoted content
     ];
 
     selectors.forEach(selector => {
       const videos = document.querySelectorAll(selector);
       videos.forEach(video => this.processVideo(video as HTMLElement));
     });
+
   }
 
   private processVideo(element: HTMLElement) {
