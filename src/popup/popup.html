@@ -14,10 +14,10 @@
         <span class="version">v1.0.0</span>
       </div>
       <div class="toggle-container-header">
-        <span class="toggle-label-header">Enabled</span>
+        <span class="toggle-label-header" id="enabledLabel">Enabled</span>
         <label class="toggle-switch">
-          <input type="checkbox" id="enabledToggle" checked>
-          <span class="toggle-slider"></span>
+          <input type="checkbox" id="enabledToggle" checked aria-labelledby="enabledLabel" aria-checked="true">
+          <span class="toggle-slider" role="presentation"></span>
         </label>
       </div>
     </header>
@@ -26,22 +26,24 @@
       Control your YouTube feed by filtering channels and titles
     </div>
 
-    <div class="tabs">
-      <button class="tab-button active" data-tab="filters">Filters</button>
-      <button class="tab-button" data-tab="settings">Settings</button>
+    <div class="tabs" role="tablist" aria-label="Main navigation">
+      <button class="tab-button active" data-tab="filters" role="tab" aria-selected="true" aria-controls="filtersTab" id="filtersTabButton">Filters</button>
+      <button class="tab-button" data-tab="settings" role="tab" aria-selected="false" aria-controls="settingsTab" id="settingsTabButton">Settings</button>
     </div>
 
-    <div class="tab-content" id="filtersTab">
+    <div class="tab-content" id="filtersTab" role="tabpanel" aria-labelledby="filtersTabButton">
       <div class="main-content">
         <div class="content-right">
           <section class="section">
-            <div class="help-text">
+            <div class="help-text" id="filtersHelp">
               Keywords to filter (one per line, or separated by commas). Use # for comments.
             </div>
             <textarea
               id="filtersTextarea"
               placeholder="keyword1&#10;keyword2, keyword3&#10;# This is a comment&#10;"
               rows="15"
+              aria-label="Filter keywords"
+              aria-describedby="filtersHelp"
             ></textarea>
             <div class="save-section">
               <button id="saveFiltersBtn" class="btn-primary">Save Filters</button>
@@ -54,21 +56,21 @@
       </div>
     </div>
 
-    <div class="tab-content" id="settingsTab" style="display: none;">
+    <div class="tab-content" id="settingsTab" style="display: none;" role="tabpanel" aria-labelledby="settingsTabButton">
       <div class="settings-section">
         <div class="setting-row">
           <div class="setting-info">
-            <span class="setting-label">Sync across browsers</span>
-            <span class="setting-description">Synchronize filters across all browsers where you're signed in</span>
+            <span class="setting-label" id="syncLabel">Sync across browsers</span>
+            <span class="setting-description" id="syncDescription">Synchronize filters across all browsers where you're signed in</span>
           </div>
           <label class="toggle-switch">
-            <input type="checkbox" id="syncToggle" checked>
-            <span class="toggle-slider"></span>
+            <input type="checkbox" id="syncToggle" checked aria-labelledby="syncLabel" aria-describedby="syncDescription" aria-checked="true">
+            <span class="toggle-slider" role="presentation"></span>
           </label>
         </div>
       </div>
       <div class="feedback-section">
-        <a id="feedbackBtn" class="btn-link" href="#">Send Feedback</a>
+        <a id="feedbackBtn" class="btn-link" href="#" aria-label="Send feedback via GitHub issues">Send Feedback</a>
       </div>
     </div>
 

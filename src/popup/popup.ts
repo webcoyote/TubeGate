@@ -84,9 +84,10 @@ class PopupController {
   }
 
   private switchTab(tabName: string) {
-    // Remove active class from all tab buttons
+    // Remove active class from all tab buttons and update aria-selected
     this.tabButtons.forEach(button => {
       button.classList.remove('active');
+      button.setAttribute('aria-selected', 'false');
     });
 
     // Hide all tab contents
@@ -94,10 +95,11 @@ class PopupController {
       (content as HTMLElement).style.display = 'none';
     });
 
-    // Add active class to clicked tab button
+    // Add active class to clicked tab button and update aria-selected
     const activeButton = document.querySelector(`.tab-button[data-tab="${tabName}"]`);
     if (activeButton) {
       activeButton.classList.add('active');
+      activeButton.setAttribute('aria-selected', 'true');
     }
 
     // Show corresponding tab content
@@ -112,10 +114,12 @@ class PopupController {
       // Load enabled state
       const isEnabled = await Storage.isEnabled();
       this.enabledToggle.checked = isEnabled;
+      this.enabledToggle.setAttribute('aria-checked', isEnabled.toString());
 
       // Load sync state
       const useSync = await Storage.getUseSync();
       this.syncToggle.checked = useSync;
+      this.syncToggle.setAttribute('aria-checked', useSync.toString());
 
       // Load custom filters into textarea
       await this.loadFiltersToTextarea();
@@ -132,10 +136,12 @@ class PopupController {
     try {
       const enabled = this.enabledToggle.checked;
       await Storage.setEnabled(enabled);
+      this.enabledToggle.setAttribute('aria-checked', enabled.toString());
     } catch (error) {
       console.error('[Popup] Failed to toggle enabled state:', error);
       // Revert the toggle state
       this.enabledToggle.checked = !this.enabledToggle.checked;
+      this.enabledToggle.setAttribute('aria-checked', this.enabledToggle.checked.toString());
       this.showError('Failed to save setting. Please try again.');
     }
   }
@@ -144,6 +150,7 @@ class PopupController {
     try {
       const useSync = this.syncToggle.checked;
       await Storage.setUseSync(useSync);
+      this.syncToggle.setAttribute('aria-checked', useSync.toString());
 
       // Show confirmation message
       const message = useSync
@@ -155,6 +162,7 @@ class PopupController {
       console.error('[Popup] Failed to toggle sync state:', error);
       // Revert the toggle state
       this.syncToggle.checked = !this.syncToggle.checked;
+      this.syncToggle.setAttribute('aria-checked', this.syncToggle.checked.toString());
       this.showError('Failed to save sync preference. Please try again.');
     }
   }
