@@ -99,6 +99,11 @@ h1 {
   transform: translateX(24px);
 }
 
+.toggle-switch input:focus + .toggle-slider {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+  outline: none;
+}
+
 .description {
   font-size: 13px;
   color: #7f8c8d;
