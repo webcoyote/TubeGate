@@ -1,5 +1,6 @@
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
+const BuildNotifyPlugin = require('./scripts/webpack-notify-plugin');
 
 module.exports = {
   mode: 'development',
@@ -33,6 +34,9 @@ module.exports = {
         { from: 'src/popup/popup.html', to: 'popup.html' },
         { from: 'src/popup/popup.css', to: 'popup.css' }
       ]
+    }),
+    new BuildNotifyPlugin({
+      enabled: true
     })
   ]
 };
