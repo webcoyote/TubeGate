@@ -2,7 +2,7 @@
 
 ## Short Description (132 characters max)
 
-Control your YouTube feed by filtering videos based on keywords. Hide unwanted content and focus on what matters.
+Control your YouTube feed by filtering videos based on keywords to hide unwanted content and focus on what matters to you.
 
 ## Detailed Description
 
@@ -16,9 +16,7 @@ TubeGate is a browser extension that filters YouTube videos based on keywords yo
 
 **Simple Keyword Filtering**
 - Add unlimited keywords to filter content
-- Supports comma-separated lists and one keyword per line
 - Case-insensitive matching
-- Add comments with # to organize your filters
 
 **Smart Filtering**
 - Filters video titles and channel names
@@ -37,17 +35,10 @@ TubeGate is a browser extension that filters YouTube videos based on keywords yo
 - Or keep filters local to one device
 - You control where your data lives
 
-**Easy to Use**
-- Clean, intuitive interface
-- Enable/disable with one click
-- Quick save with Cmd/Ctrl+S
-- Filter count display
-- Keyboard accessible
-
 ### Perfect For
 
 **Content Curation**
-Filter out topics you're not interested in like sports, politics, or specific genres.
+Filter out topics you're not interested in like sports or politics.
 
 **Focus & Productivity**
 Remove distracting content to stay focused on educational or work-related videos.
@@ -65,42 +56,14 @@ Clean up your feed by filtering clickbait, repetitive content, or oversaturated 
 
 1. Install TubeGate from the Chrome Web Store
 2. Click the extension icon to open settings
-3. Add keywords to filter (e.g., "sponsored", "unboxing", "reaction")
+3. Add keywords to filter (e.g., "sponsored", "sports", "politics")
 4. Save your filters
 5. Browse YouTube as normal - matching videos are automatically hidden
-
-### Example Use Cases
-
-**Student focusing on study content:**
-```
-# Filter distractions
-gaming
-entertainment
-celebrity
-gossip
-```
-
-**Professional avoiding spoilers:**
-```
-# Block TV show spoilers
-game of thrones
-breaking bad spoiler
-finale
-```
-
-**Content creator researching specific topics:**
-```
-# Filter out noise
-reaction video
-compilation
-top 10
-```
 
 ### Technical Details
 
 - Works on YouTube.com
 - Filters homepage, search results, and recommendations
-- Lightweight and fast
 - No impact on video playback
 - Compatible with Chrome and Chromium-based browsers
 
@@ -117,7 +80,7 @@ All your filters and settings stay on your device (or in Chrome sync if you enab
 
 ### Support & Feedback
 
-Found a bug or have a feature request? We're here to help!
+Found a bug or have a feature request?
 
 - GitHub Issues: https://github.com/webcoyote/TubeGate/issues
 - Source Code: https://github.com/webcoyote/TubeGate
@@ -156,6 +119,4 @@ TubeGate is free and open source software licensed under the Apache License 2.0.
 
 **Website:** https://github.com/webcoyote/TubeGate
 
-**Support Email:** (Add your support email)
-
-**Privacy Policy URL:** (Add GitHub raw URL to PRIVACY.md)
+**Privacy Policy URL:** https://github.com/webcoyote/TubeGate/blob/main/PRIVACY.md
