@@ -64,20 +64,32 @@ class PopupController {
   }
 
   private async loadData() {
-    // Load enabled state
-    const isEnabled = await Storage.isEnabled();
-    this.enabledToggle.checked = isEnabled;
+    try {
+      // Load enabled state
+      const isEnabled = await Storage.isEnabled();
+      this.enabledToggle.checked = isEnabled;
 
-    // Load custom filters into textarea
-    await this.loadFiltersToTextarea();
+      // Load custom filters into textarea
+      await this.loadFiltersToTextarea();
 
-    // Update filter count
-    await this.updateFilterCount();
+      // Update filter count
+      await this.updateFilterCount();
+    } catch (error) {
+      console.error('[Popup] Failed to load data:', error);
+      this.showError('Failed to load filters. Please try refreshing.');
+    }
   }
 
   private async toggleEnabled() {
-    const enabled = this.enabledToggle.checked;
-    await Storage.setEnabled(enabled);
+    try {
+      const enabled = this.enabledToggle.checked;
+      await Storage.setEnabled(enabled);
+    } catch (error) {
+      console.error('[Popup] Failed to toggle enabled state:', error);
+      // Revert the toggle state
+      this.enabledToggle.checked = !this.enabledToggle.checked;
+      this.showError('Failed to save setting. Please try again.');
+    }
   }
 
   private async loadFiltersToTextarea() {
@@ -136,19 +148,36 @@ sponsored
   }
 
   private async saveFilters() {
-    const text = this.filtersTextarea.value;
-    const filters = this.parseFiltersFromText(text);
+    try {
+      const text = this.filtersTextarea.value;
+      const filters = this.parseFiltersFromText(text);
 
-    // Save both the raw text (for display) and parsed filters (for filtering)
-    await Storage.setCustomFiltersText(text);
-    await Storage.setCustomFilters(filters);
-    await this.updateFilterCount();
+      // Save both the raw text (for display) and parsed filters (for filtering)
+      await Storage.setCustomFiltersText(text);
+      await Storage.setCustomFilters(filters);
+      await this.updateFilterCount();
 
-    // Show brief confirmation
-    this.saveFiltersBtn.textContent = 'Saved!';
-    setTimeout(() => {
-      this.saveFiltersBtn.textContent = 'Save Filters';
-    }, 1500);
+      // Show brief confirmation
+      this.saveFiltersBtn.textContent = 'Saved!';
+      setTimeout(() => {
+        this.saveFiltersBtn.textContent = 'Save Filters';
+      }, 1500);
+    } catch (error) {
+      console.error('[Popup] Failed to save filters:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+      // Check if it's a quota error
+      if (errorMessage.includes('quota') || errorMessage.includes('Storage quota exceeded')) {
+        this.showError('Storage quota exceeded. Try reducing the number of filters or using shorter keywords.');
+      } else {
+        this.showError('Failed to save filters. Please try again.');
+      }
+
+      this.saveFiltersBtn.textContent = 'Error!';
+      setTimeout(() => {
+        this.saveFiltersBtn.textContent = 'Save Filters';
+      }, 2000);
+    }
   }
 
   private async updateFilterCount() {
@@ -156,6 +185,22 @@ sponsored
     console.log('[YT Filter] Filters:', allFilters);
     const count = allFilters.length;
     this.filterCountEl.textContent = `${count} active ${count === 1 ? 'filter' : 'filters'}`;
+  }
+
+  private showError(message: string) {
+    // Create a temporary error message element
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = message;
+    errorDiv.style.cssText = 'color: red; padding: 10px; margin: 10px 0; border: 1px solid red; border-radius: 4px; background-color: #ffebee;';
+
+    // Insert before the textarea
+    this.filtersTextarea.parentElement?.insertBefore(errorDiv, this.filtersTextarea);
+
+    // Remove after 5 seconds
+    setTimeout(() => {
+      errorDiv.remove();
+    }, 5000);
   }
 }
 

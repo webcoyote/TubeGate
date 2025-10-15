@@ -20,10 +20,22 @@ import { STORAGE_KEYS } from '../types';
 // Initialize default values on install
 chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === 'install') {
-    // Set default values
-    await chrome.storage.sync.set({
-      [STORAGE_KEYS.CUSTOM_FILTERS]: []
-    });
+    try {
+      // Set default values
+      await chrome.storage.sync.set({
+        [STORAGE_KEYS.CUSTOM_FILTERS]: []
+      });
+    } catch (error) {
+      console.error('[Background] Failed to initialize storage:', error);
+      // Fallback to local storage
+      try {
+        await chrome.storage.local.set({
+          [STORAGE_KEYS.CUSTOM_FILTERS]: []
+        });
+      } catch (localError) {
+        console.error('[Background] Failed to initialize local storage:', localError);
+      }
+    }
 
     // Open welcome page
     chrome.tabs.create({

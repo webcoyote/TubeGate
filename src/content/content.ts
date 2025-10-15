@@ -25,32 +25,51 @@ class YouTubeFilter {
   private enabled: boolean = true;
 
   async init() {
-    await this.loadFilters();
-    await this.loadEnabledState();
-    this.startObserving();
-    this.filterExistingVideos();
+    try {
+      await this.loadFilters();
+      await this.loadEnabledState();
+      this.startObserving();
+      this.filterExistingVideos();
 
-    // Listen for filter updates from popup
-    chrome.storage.onChanged.addListener((changes) => {
-      if (changes.customFilters) {
-        this.loadFilters();
-        this.filterExistingVideos();
-      }
-      if (changes.enabled !== undefined) {
-        this.loadEnabledState();
-        this.filterExistingVideos();
-      }
-    });
+      // Listen for filter updates from popup
+      chrome.storage.onChanged.addListener((changes) => {
+        if (changes.customFilters) {
+          this.loadFilters().catch(error => {
+            console.error('[YT Filter] Failed to reload filters:', error);
+          });
+          this.filterExistingVideos();
+        }
+        if (changes.enabled !== undefined) {
+          this.loadEnabledState().catch(error => {
+            console.error('[YT Filter] Failed to reload enabled state:', error);
+          });
+          this.filterExistingVideos();
+        }
+      });
+    } catch (error) {
+      console.error('[YT Filter] Failed to initialize:', error);
+    }
   }
 
   private async loadEnabledState() {
-    this.enabled = await Storage.isEnabled();
+    try {
+      this.enabled = await Storage.isEnabled();
+    } catch (error) {
+      console.error('[YT Filter] Failed to load enabled state:', error);
+      // Default to enabled on error
+      this.enabled = true;
+    }
   }
 
   private async loadFilters() {
-    const filterArray = await Storage.getAllFilters();
-    // Store filters as lowercase in a Set for O(1) lookups
-    this.filters = new Set(filterArray.map(f => f.toLowerCase()));
+    try {
+      const filterArray = await Storage.getAllFilters();
+      // Store filters as lowercase in a Set for O(1) lookups
+      this.filters = new Set(filterArray.map(f => f.toLowerCase()));
+    } catch (error) {
+      console.error('[YT Filter] Failed to load filters:', error);
+      // Keep existing filters on error
+    }
   }
 
   private startObserving() {
