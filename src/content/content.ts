@@ -63,19 +63,21 @@ class YouTubeFilter {
       return;
     }
 
+    const channelName = this.getChannelName(element);
+
     // Only count videos we haven't seen before
     if (!this.processedVideos.has(videoId)) {
       this.processedVideos.add(videoId);
 
-      if (this.shouldFilter(title)) {
-        console.log('[YT Filter] Blocked:', title);
+      if (this.shouldFilter(title, channelName)) {
+        console.log('[YT Filter] Blocked:', title, channelName ? `(${channelName})` : '');
         Storage.incrementBlockedCount();
         this.hideVideo(element);
       } else {
-        console.log('[YT Filter] Shown:', title);
+        console.log('[YT Filter] Shown:', title, channelName ? `(${channelName})` : '');
         Storage.incrementShownCount();
       }
-    } else if (this.shouldFilter(title)) {
+    } else if (this.shouldFilter(title, channelName)) {
       // Always hide matching videos, even if we've seen this video ID before
       // (YouTube can show the same video in multiple places/pages)
       this.hideVideo(element);
@@ -146,11 +148,48 @@ class YouTubeFilter {
     return null;
   }
 
-  private shouldFilter(title: string): boolean {
+  private getChannelName(element: HTMLElement): string | null {
+    // Strategy 1: Try channel name selectors
+    const channelSelectors = [
+      'ytd-channel-name #text',                    // Standard channel name
+      '#channel-name #text',                       // Alternative channel name
+      'a.yt-simple-endpoint[href^="/@"]',          // Channel link
+      'a.yt-simple-endpoint[href*="/channel/"]',   // Channel page link
+      '#channel-title',                            // Compact video renderer
+    ];
+
+    for (const selector of channelSelectors) {
+      const channelElement = element.querySelector(selector);
+      if (channelElement) {
+        const channelName = channelElement.textContent?.trim();
+        if (channelName && channelName.length > 0) {
+          return channelName;
+        }
+      }
+    }
+
+    // Strategy 2: Look for any link to a channel
+    const channelLinks = element.querySelectorAll('a[href^="/@"], a[href*="/channel/"]');
+    for (let i = 0; i < channelLinks.length; i++) {
+      const link = channelLinks[i];
+      const channelName = link.textContent?.trim();
+      // Make sure it's not too long (probably not a channel name)
+      if (channelName && channelName.length > 0 && channelName.length < 100) {
+        return channelName;
+      }
+    }
+
+    return null;
+  }
+
+  private shouldFilter(title: string, channelName: string | null): boolean {
     const lowerTitle = title.toLowerCase();
+    const lowerChannel = channelName?.toLowerCase() || '';
+
     return this.filters.some(filter => {
       const lowerFilter = filter.toLowerCase();
-      return lowerTitle.includes(lowerFilter);
+      // Check if filter matches title or channel name
+      return lowerTitle.includes(lowerFilter) || lowerChannel.includes(lowerFilter);
     });
   }
 

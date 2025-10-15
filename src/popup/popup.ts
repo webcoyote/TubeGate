@@ -5,10 +5,7 @@ class PopupController {
   private tabContents: NodeListOf<HTMLElement>;
   private filtersTextarea: HTMLTextAreaElement;
   private saveFiltersBtn: HTMLElement;
-  private blockedCountEl: HTMLElement;
-  private shownCountEl: HTMLElement;
   private filterCountEl: HTMLElement;
-  private resetStatsBtn: HTMLElement;
   private feedbackBtn: HTMLElement;
 
   constructor() {
@@ -16,10 +13,7 @@ class PopupController {
     this.tabContents = document.querySelectorAll('.tab-content');
     this.filtersTextarea = document.getElementById('filtersTextarea') as HTMLTextAreaElement;
     this.saveFiltersBtn = document.getElementById('saveFiltersBtn')!;
-    this.blockedCountEl = document.getElementById('blockedCount')!;
-    this.shownCountEl = document.getElementById('shownCount')!;
     this.filterCountEl = document.getElementById('filterCount')!;
-    this.resetStatsBtn = document.getElementById('resetStatsBtn')!;
     this.feedbackBtn = document.getElementById('feedbackBtn')!;
 
     this.init();
@@ -38,9 +32,6 @@ class PopupController {
 
     // Save filters
     this.saveFiltersBtn.addEventListener('click', () => this.saveFilters());
-
-    // Reset statistics
-    this.resetStatsBtn.addEventListener('click', () => this.resetStatistics());
 
     // Feedback
     this.feedbackBtn.addEventListener('click', () => {
@@ -61,9 +52,6 @@ class PopupController {
   private async loadData() {
     // Load custom filters into textarea
     await this.loadFiltersToTextarea();
-
-    // Load statistics
-    await this.updateStatistics();
 
     // Update filter count
     await this.updateFilterCount();
@@ -125,28 +113,11 @@ class PopupController {
     }, 1500);
   }
 
-  private async updateStatistics() {
-    const stats = await Storage.getStatistics();
-    console.log('[YT Filter] Statistics:', stats);
-    this.blockedCountEl.textContent = stats.blockedToday.toString();
-    this.shownCountEl.textContent = stats.shownToday.toString();
-  }
-
   private async updateFilterCount() {
     const allFilters = await Storage.getAllFilters();
     console.log('[YT Filter] Filters:', allFilters);
-    this.filterCountEl.textContent = allFilters.length.toString();
-  }
-
-  private async resetStatistics() {
-    if (confirm('Are you sure you want to reset statistics?')) {
-      await Storage.setStatistics({
-        blockedToday: 0,
-        shownToday: 0,
-        lastResetDate: new Date().toDateString()
-      });
-      await this.updateStatistics();
-    }
+    const count = allFilters.length;
+    this.filterCountEl.textContent = `${count} active ${count === 1 ? 'filter' : 'filters'}`;
   }
 }
 

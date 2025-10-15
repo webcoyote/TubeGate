@@ -44,40 +44,10 @@ h1 {
 
 .main-content {
   display: flex;
-  gap: 20px;
 }
 
 .content-right {
   flex: 1;
-}
-
-.stats {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 20px;
-  width: 180px;
-}
-
-.stat-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
-  padding: 16px;
-  text-align: center;
-  color: white;
-}
-
-.stat-value {
-  font-size: 32px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-
-.stat-label {
-  font-size: 11px;
-  opacity: 0.9;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .tabs {
@@ -219,6 +189,18 @@ h2 {
 
 #filtersTextarea::placeholder {
   color: #95a5a6;
+  font-style: italic;
+}
+
+.save-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filter-count {
+  font-size: 12px;
+  color: #7f8c8d;
   font-style: italic;
 }
 
