@@ -7,6 +7,7 @@ class PopupController {
   private newFilterInput: HTMLInputElement;
   private addFilterBtn: HTMLElement;
   private blockedCountEl: HTMLElement;
+  private shownCountEl: HTMLElement;
   private filterCountEl: HTMLElement;
   private resetStatsBtn: HTMLElement;
   private feedbackBtn: HTMLElement;
@@ -18,6 +19,7 @@ class PopupController {
     this.newFilterInput = document.getElementById('newFilterInput') as HTMLInputElement;
     this.addFilterBtn = document.getElementById('addFilterBtn')!;
     this.blockedCountEl = document.getElementById('blockedCount')!;
+    this.shownCountEl = document.getElementById('shownCount')!;
     this.filterCountEl = document.getElementById('filterCount')!;
     this.resetStatsBtn = document.getElementById('resetStatsBtn')!;
     this.feedbackBtn = document.getElementById('feedbackBtn')!;
@@ -124,11 +126,14 @@ class PopupController {
 
   private async updateStatistics() {
     const stats = await Storage.getStatistics();
+    console.log('[YT Filter] Statistics:', stats);
     this.blockedCountEl.textContent = stats.blockedToday.toString();
+    this.shownCountEl.textContent = stats.shownToday.toString();
   }
 
   private async updateFilterCount() {
     const allFilters = await Storage.getAllFilters();
+    console.log('[YT Filter] Filters:', allFilters);
     this.filterCountEl.textContent = allFilters.length.toString();
   }
 
@@ -136,6 +141,7 @@ class PopupController {
     if (confirm('Are you sure you want to reset statistics?')) {
       await Storage.setStatistics({
         blockedToday: 0,
+        shownToday: 0,
         lastResetDate: new Date().toDateString()
       });
       await this.updateStatistics();

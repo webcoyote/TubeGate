@@ -63,16 +63,22 @@ class YouTubeFilter {
       return;
     }
 
-    if (this.shouldFilter(title)) {
+    // Only count videos we haven't seen before
+    if (!this.processedVideos.has(videoId)) {
+      this.processedVideos.add(videoId);
+
+      if (this.shouldFilter(title)) {
+        console.log('[YT Filter] Blocked:', title);
+        Storage.incrementBlockedCount();
+        this.hideVideo(element);
+      } else {
+        console.log('[YT Filter] Shown:', title);
+        Storage.incrementShownCount();
+      }
+    } else if (this.shouldFilter(title)) {
       // Always hide matching videos, even if we've seen this video ID before
       // (YouTube can show the same video in multiple places/pages)
       this.hideVideo(element);
-
-      // Only increment counter if this is the first time we've blocked this video
-      if (!this.processedVideos.has(videoId)) {
-        this.processedVideos.add(videoId);
-        Storage.incrementBlockedCount();
-      }
     }
   }
 

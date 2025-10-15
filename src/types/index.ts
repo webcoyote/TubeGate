@@ -2,6 +2,7 @@ export interface FilterData {
   customFilters: string[];
   statistics: {
     blockedToday: number;
+    shownToday: number;
     lastResetDate: string;
   };
 }
