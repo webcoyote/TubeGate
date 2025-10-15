@@ -68,6 +68,8 @@ class YouTubeFilter {
       this.hideVideo(element);
       this.processedVideos.add(videoId);
       Storage.incrementBlockedCount();
+    } else {
+      console.debug('YouTube Filter: Showing video:', title);
     }
   }
 
