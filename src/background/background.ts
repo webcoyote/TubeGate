@@ -3,12 +3,9 @@ import { STORAGE_KEYS } from '../types';
 // Initialize default values on install
 chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === 'install') {
-    console.log('YouTube Filter: Extension installed');
-
     // Set default values
     await chrome.storage.sync.set({
-      [STORAGE_KEYS.CUSTOM_FILTERS]: [],
-      [STORAGE_KEYS.DEFAULT_FILTERS_ENABLED]: true
+      [STORAGE_KEYS.CUSTOM_FILTERS]: []
     });
 
     await chrome.storage.local.set({
@@ -22,8 +19,6 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     chrome.tabs.create({
       url: 'https://www.youtube.com'
     });
-  } else if (details.reason === 'update') {
-    console.log('YouTube Filter: Extension updated');
   }
 });
 

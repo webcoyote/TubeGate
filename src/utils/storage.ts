@@ -24,15 +24,6 @@ export class Storage {
     await this.setCustomFilters(updated);
   }
 
-  static async getDefaultFiltersEnabled(): Promise<boolean> {
-    const result = await chrome.storage.sync.get(STORAGE_KEYS.DEFAULT_FILTERS_ENABLED);
-    return result[STORAGE_KEYS.DEFAULT_FILTERS_ENABLED] ?? true;
-  }
-
-  static async setDefaultFiltersEnabled(enabled: boolean): Promise<void> {
-    await chrome.storage.sync.set({ [STORAGE_KEYS.DEFAULT_FILTERS_ENABLED]: enabled });
-  }
-
   static async getStatistics(): Promise<FilterData['statistics']> {
     const result = await chrome.storage.local.get(STORAGE_KEYS.STATISTICS);
     return result[STORAGE_KEYS.STATISTICS] || {
@@ -60,16 +51,6 @@ export class Storage {
   }
 
   static async getAllFilters(): Promise<string[]> {
-    const customFilters = await this.getCustomFilters();
-    const defaultEnabled = await this.getDefaultFiltersEnabled();
-
-    const { DEFAULT_FILTERS } = await import('../types');
-    const allFilters = [...customFilters];
-
-    if (defaultEnabled) {
-      allFilters.push(...DEFAULT_FILTERS);
-    }
-
-    return allFilters;
+    return await this.getCustomFilters();
   }
 }

@@ -1,10 +1,8 @@
 import { Storage } from '../utils/storage';
-import { DEFAULT_FILTERS } from '../types';
 
 class PopupController {
   private tabBtns: NodeListOf<HTMLElement>;
   private tabContents: NodeListOf<HTMLElement>;
-  private defaultFiltersToggle: HTMLInputElement;
   private customFiltersList: HTMLElement;
   private newFilterInput: HTMLInputElement;
   private addFilterBtn: HTMLElement;
@@ -16,7 +14,6 @@ class PopupController {
   constructor() {
     this.tabBtns = document.querySelectorAll('.tab-btn');
     this.tabContents = document.querySelectorAll('.tab-content');
-    this.defaultFiltersToggle = document.getElementById('defaultFiltersToggle') as HTMLInputElement;
     this.customFiltersList = document.getElementById('customFiltersList')!;
     this.newFilterInput = document.getElementById('newFilterInput') as HTMLInputElement;
     this.addFilterBtn = document.getElementById('addFilterBtn')!;
@@ -37,12 +34,6 @@ class PopupController {
     // Tab switching
     this.tabBtns.forEach(btn => {
       btn.addEventListener('click', () => this.switchTab(btn.dataset.tab!));
-    });
-
-    // Default filters toggle
-    this.defaultFiltersToggle.addEventListener('change', async () => {
-      await Storage.setDefaultFiltersEnabled(this.defaultFiltersToggle.checked);
-      await this.updateFilterCount();
     });
 
     // Add filter
@@ -73,10 +64,6 @@ class PopupController {
   }
 
   private async loadData() {
-    // Load default filters toggle state
-    const defaultEnabled = await Storage.getDefaultFiltersEnabled();
-    this.defaultFiltersToggle.checked = defaultEnabled;
-
     // Load custom filters
     await this.renderCustomFilters();
 

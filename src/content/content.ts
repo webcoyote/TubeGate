@@ -12,7 +12,7 @@ class YouTubeFilter {
 
     // Listen for filter updates from popup
     chrome.storage.onChanged.addListener((changes) => {
-      if (changes.customFilters || changes.defaultFiltersEnabled) {
+      if (changes.customFilters) {
         this.loadFilters();
         this.filterExistingVideos();
       }
