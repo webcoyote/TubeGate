@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Video Filter",
+  "name": "TubeGate",
   "version": "1.0.0",
-  "description": "Filter YouTube videos by title and keywords",
+  "description": "Control your YouTube feed - filter videos by title and channel",
   "permissions": [
     "storage"
   ],

@@ -1,7 +1,7 @@
 {
-  "name": "yt-filter",
+  "name": "tubegate",
   "version": "1.0.0",
-  "description": "YouTube video filter Chrome extension",
+  "description": "TubeGate - Filter your YouTube feed",
   "scripts": {
     "build": "webpack",
     "watch": "webpack --watch",

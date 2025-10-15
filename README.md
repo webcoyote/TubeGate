@@ -1,14 +1,13 @@
-# YouTube Video Filter
+# TubeGate
 
-A Chrome extension that automatically filters YouTube videos from your feed based on title keywords.
+A Chrome extension that filters your YouTube feed by title and channel based on keywords you choose.
+
+No politics! No sports! No Faux News!
 
 ## Features
 
-- 🎯 Filter videos by custom keywords
-- 📊 Track statistics (videos blocked today)
-- 🔄 Sync settings across Chrome browsers
-- 🎨 Clean, modern UI
-- ⚡ Fast and lightweight
+- Filter videos by channels and custom keywords
+- Sync settings across Chrome browsers
 
 ## Installation
 
@@ -44,42 +43,6 @@ pnpm run watch
 2. Add custom filter keywords in the popup
 3. Toggle default filters on/off
 4. Browse YouTube - matching videos will be automatically hidden
-
-## Project Structure
-
-```
-yt-filter/
-├── src/
-│   ├── content/
-│   │   └── content.ts          # Content script (filters videos)
-│   ├── popup/
-│   │   ├── popup.html          # Extension popup UI
-│   │   ├── popup.ts            # Popup logic
-│   │   └── popup.css           # Styling
-│   ├── background/
-│   │   └── background.ts       # Background service worker
-│   ├── types/
-│   │   └── index.ts            # TypeScript types
-│   └── utils/
-│       └── storage.ts          # Chrome storage utilities
-├── public/
-│   ├── manifest.json           # Extension manifest
-│   └── icons/                  # Extension icons
-└── dist/                       # Build output (load this in Chrome)
-```
-
-## Scripts
-
-- `pnpm run build` - Build for development
-- `pnpm run watch` - Build and watch for changes
-- `pnpm run build:prod` - Build for production
-
-## Technology Stack
-
-- TypeScript
-- Webpack
-- Chrome Extension Manifest V3
-- pnpm (package manager)
 
 ## License
 

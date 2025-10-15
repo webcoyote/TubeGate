@@ -83,8 +83,8 @@ class PopupController {
       // Remove comments (everything after #)
       const withoutComments = line.split('#')[0];
 
-      // Split by commas and semicolons
-      const parts = withoutComments.split(/[,;]/);
+      // Split by commas
+      const parts = withoutComments.split(/[,]/);
 
       for (const part of parts) {
         const trimmed = part.trim().toLowerCase();
