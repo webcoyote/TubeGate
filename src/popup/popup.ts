@@ -70,9 +70,19 @@ class PopupController {
   }
 
   private async loadFiltersToTextarea() {
-    const filters = await Storage.getCustomFilters();
-    // Display one filter per line in the textarea
-    this.filtersTextarea.value = filters.join('\n');
+    // Load the raw text if it exists, otherwise fall back to filters array
+    let text = await Storage.getCustomFiltersText();
+
+    if (!text) {
+      // Migration: if we only have the old format, convert it
+      const filters = await Storage.getCustomFilters();
+      text = filters.join('\n');
+      if (text) {
+        await Storage.setCustomFiltersText(text);
+      }
+    }
+
+    this.filtersTextarea.value = text;
   }
 
   private parseFiltersFromText(text: string): string[] {
@@ -103,10 +113,9 @@ class PopupController {
     const text = this.filtersTextarea.value;
     const filters = this.parseFiltersFromText(text);
 
+    // Save both the raw text (for display) and parsed filters (for filtering)
+    await Storage.setCustomFiltersText(text);
     await Storage.setCustomFilters(filters);
-
-    // Reload the textarea to show the cleaned up list
-    await this.loadFiltersToTextarea();
     await this.updateFilterCount();
 
     // Show brief confirmation

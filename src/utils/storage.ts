@@ -10,6 +10,15 @@ export class Storage {
     await chrome.storage.sync.set({ [STORAGE_KEYS.CUSTOM_FILTERS]: filters });
   }
 
+  static async getCustomFiltersText(): Promise<string> {
+    const result = await chrome.storage.sync.get(STORAGE_KEYS.CUSTOM_FILTERS_TEXT);
+    return result[STORAGE_KEYS.CUSTOM_FILTERS_TEXT] || '';
+  }
+
+  static async setCustomFiltersText(text: string): Promise<void> {
+    await chrome.storage.sync.set({ [STORAGE_KEYS.CUSTOM_FILTERS_TEXT]: text });
+  }
+
   static async addCustomFilter(filter: string): Promise<void> {
     const filters = await this.getCustomFilters();
     if (!filters.includes(filter.toLowerCase())) {
