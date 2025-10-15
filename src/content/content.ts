@@ -18,8 +18,10 @@
 import { Storage } from '../utils/storage';
 
 class YouTubeFilter {
-  private filters: string[] = [];
+  private filters: Set<string> = new Set();
   private observer: MutationObserver | null = null;
+  private debounceTimer: number | null = null;
+  private readonly DEBOUNCE_DELAY = 100; // milliseconds
 
   async init() {
     await this.loadFilters();
@@ -36,12 +38,21 @@ class YouTubeFilter {
   }
 
   private async loadFilters() {
-    this.filters = await Storage.getAllFilters();
+    const filterArray = await Storage.getAllFilters();
+    // Store filters as lowercase in a Set for O(1) lookups
+    this.filters = new Set(filterArray.map(f => f.toLowerCase()));
   }
 
   private startObserving() {
     this.observer = new MutationObserver((mutations) => {
-      this.filterExistingVideos();
+      // Debounce the filtering to avoid excessive processing
+      if (this.debounceTimer !== null) {
+        clearTimeout(this.debounceTimer);
+      }
+      this.debounceTimer = window.setTimeout(() => {
+        this.filterExistingVideos();
+        this.debounceTimer = null;
+      }, this.DEBOUNCE_DELAY);
     });
 
     this.observer.observe(document.body, {
@@ -87,9 +98,9 @@ class YouTubeFilter {
   private shouldFilterByText(text: string): string | null {
     const lowerText = text.toLowerCase();
 
+    // Filters are already stored as lowercase in the Set
     for (const filter of this.filters) {
-      const lowerFilter = filter.toLowerCase();
-      if (lowerText.includes(lowerFilter)) {
+      if (lowerText.includes(filter)) {
         return filter;
       }
     }
