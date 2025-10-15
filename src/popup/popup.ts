@@ -50,6 +50,17 @@ class PopupController {
 
     // Enable/disable toggle
     this.enabledToggle.addEventListener('change', () => this.toggleEnabled());
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (event) => this.handleKeyboardShortcuts(event));
+  }
+
+  private handleKeyboardShortcuts(event: KeyboardEvent) {
+    // Cmd+S (Mac) or Ctrl+S (Windows/Linux) to save filters
+    if ((event.metaKey || event.ctrlKey) && event.key === 's') {
+      event.preventDefault();
+      this.saveFilters();
+    }
   }
 
   private async loadData() {
