@@ -44,6 +44,12 @@ pnpm run watch
 3. Toggle default filters on/off
 4. Browse YouTube - matching videos will be automatically hidden
 
+## Privacy
+
+TubeGate respects your privacy. All filtering happens locally in your browser, and no data is collected or transmitted. Your filter keywords and settings are stored only on your device (or optionally synced via Chrome Sync if you choose).
+
+For more details, see our [Privacy Policy](PRIVACY.md).
+
 ## License
 
 Apache License, Version 2.0

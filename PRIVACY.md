@@ -4,13 +4,13 @@
 
 ## Overview
 
-TubeGate is a browser extension that helps you control your YouTube feed by filtering videos based on keywords you specify. Your privacy is important to us.
+TubeGate is a browser extension that helps you control your YouTube feed by filtering videos based on keywords you specify.
 
 ## Data Collection
 
 TubeGate does **not** collect, transmit, or share any personal data. All data stays on your device.
 
-### What We Store Locally
+### What Is Stored Locally
 
 TubeGate stores the following data locally in your browser using Chrome's storage API:
 
@@ -62,10 +62,8 @@ We may update this privacy policy from time to time. Changes will be posted in t
 
 ## Contact
 
-If you have questions about this privacy policy, please open an issue on our GitHub repository:
-https://github.com/webcoyote/TubeGate/issues
+If you have questions about this privacy policy, please open an issue on our GitHub repository: https://github.com/webcoyote/TubeGate/issues
 
 ## Open Source
 
-TubeGate is open source software. You can review the complete source code at:
-https://github.com/webcoyote/TubeGate
+TubeGate is open source software. You can review the complete source code at: https://github.com/webcoyote/TubeGate
