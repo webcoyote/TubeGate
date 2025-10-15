@@ -73,135 +73,26 @@ class YouTubeFilter {
   }
 
   private processVideo(element: HTMLElement) {
-    const videoId = this.getVideoId(element);
-    if (!videoId) {
-      return;
-    }
+    // Get all text content from the element and its children
+    const allText = element.textContent || '';
 
-    const title = this.getVideoTitle(element);
-    if (!title) {
-      return;
-    }
-
-    const channelName = this.getChannelName(element);
-    if (this.shouldFilter(title, channelName)) {
-      console.log('[YT Filter] Blocked:', title, channelName ? `(${channelName})` : '');
-      this.hideVideo(element);
-    } else {
-      console.debug('[YT Filter] Shown:', title, channelName ? `(${channelName})` : '');
+    // Check if any filter matches any text in the element
+    if (this.shouldFilterByText(allText)) {
+      console.log('[YT Filter] Blocked element containing filtered text');
+      this.removeVideo(element);
     }
   }
 
-  private getVideoId(element: HTMLElement): string | null {
-    // Try multiple link selectors (regular videos and Shorts)
-    const linkSelectors = [
-      'a#video-title',
-      'a#thumbnail',
-      'a[href^="/shorts/"]',
-      'a.shortsLockupViewModelHostEndpoint'
-    ];
-
-    for (const selector of linkSelectors) {
-      const link = element.querySelector(selector);
-      if (link instanceof HTMLAnchorElement) {
-        return link.href;
-      }
-    }
-
-    return null;
-  }
-
-  private getVideoTitle(element: HTMLElement): string | null {
-    // Strategy 1: Try specific title selectors
-    const titleSelectors = [
-      '#video-title',                              // Standard video title
-      'a#video-title-link',                        // Some grid views
-      '.title',                                    // Generic title class
-      'h3 a',                                      // Title in heading
-      'a.shortsLockupViewModelHostEndpoint',       // Shorts link (contains title/aria-label)
-      '.shortsLockupViewModelHostMetadataTitle a'  // Shorts title metadata
-    ];
-
-    for (const selector of titleSelectors) {
-      const titleElement = element.querySelector(selector);
-      if (titleElement) {
-        const title = titleElement.getAttribute('title') ||
-                     titleElement.getAttribute('aria-label') ||
-                     titleElement.textContent?.trim();
-        if (title && title.length > 0) {
-          return title;
-        }
-      }
-    }
-
-    // Strategy 2: For Shorts, look for span with role="text" inside title area
-    const shortsSpan = element.querySelector('.shortsLockupViewModelHostMetadataTitle span[role="text"]');
-    if (shortsSpan) {
-      const title = shortsSpan.textContent?.trim();
-      if (title && title.length > 0) {
-        return title;
-      }
-    }
-
-    // Strategy 3: Fallback - search for any link with title or aria-label
-    const links = element.querySelectorAll('a');
-    for (let i = 0; i < links.length; i++) {
-      const link = links[i];
-      const title = link.getAttribute('title') || link.getAttribute('aria-label');
-      if (title && title.length > 10) { // Reasonable title length
-        return title;
-      }
-    }
-
-    return null;
-  }
-
-  private getChannelName(element: HTMLElement): string | null {
-    // Strategy 1: Try channel name selectors
-    const channelSelectors = [
-      'ytd-channel-name #text',                    // Standard channel name
-      '#channel-name #text',                       // Alternative channel name
-      'a.yt-simple-endpoint[href^="/@"]',          // Channel link
-      'a.yt-simple-endpoint[href*="/channel/"]',   // Channel page link
-      '#channel-title',                            // Compact video renderer
-    ];
-
-    for (const selector of channelSelectors) {
-      const channelElement = element.querySelector(selector);
-      if (channelElement) {
-        const channelName = channelElement.textContent?.trim();
-        if (channelName && channelName.length > 0) {
-          return channelName;
-        }
-      }
-    }
-
-    // Strategy 2: Look for any link to a channel
-    const channelLinks = element.querySelectorAll('a[href^="/@"], a[href*="/channel/"]');
-    for (let i = 0; i < channelLinks.length; i++) {
-      const link = channelLinks[i];
-      const channelName = link.textContent?.trim();
-      // Make sure it's not too long (probably not a channel name)
-      if (channelName && channelName.length > 0 && channelName.length < 100) {
-        return channelName;
-      }
-    }
-
-    return null;
-  }
-
-  private shouldFilter(title: string, channelName: string | null): boolean {
-    const lowerTitle = title.toLowerCase();
-    const lowerChannel = channelName?.toLowerCase() || '';
+  private shouldFilterByText(text: string): boolean {
+    const lowerText = text.toLowerCase();
 
     return this.filters.some(filter => {
       const lowerFilter = filter.toLowerCase();
-      // Check if filter matches title or channel name
-      return lowerTitle.includes(lowerFilter) || lowerChannel.includes(lowerFilter);
+      return lowerText.includes(lowerFilter);
     });
   }
 
-  private hideVideo(element: HTMLElement) {
+  private removeVideo(element: HTMLElement) {
     // For grid layouts, we need to remove the parent container
     // ytd-rich-item-renderer is the parent for new YouTube layout
     const richItemParent = element.closest('ytd-rich-item-renderer');
