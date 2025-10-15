@@ -17,15 +17,27 @@
 
 import { Storage } from '../utils/storage';
 
+interface SelectorConfig {
+  selector: string;
+  description: string;
+  lastSuccessTime: number;
+  failureCount: number;
+}
+
 class YouTubeFilter {
   private filters: Set<string> = new Set();
   private observer: MutationObserver | null = null;
   private debounceTimer: number | null = null;
   private readonly DEBOUNCE_DELAY = 100; // milliseconds
   private enabled: boolean = true;
+  private selectorConfigs: SelectorConfig[] = [];
+  private readonly MAX_SELECTOR_FAILURES = 10;
+  private lastHealthCheck: number = 0;
+  private readonly HEALTH_CHECK_INTERVAL = 60000; // 1 minute
 
   async init() {
     try {
+      this.initializeSelectors();
       await this.loadFilters();
       await this.loadEnabledState();
       this.startObserving();
@@ -49,6 +61,22 @@ class YouTubeFilter {
     } catch (error) {
       console.error('[YT Filter] Failed to initialize:', error);
     }
+  }
+
+  private initializeSelectors() {
+    // Primary selectors - current YouTube structure (2025)
+    this.selectorConfigs = [
+      { selector: 'ytd-video-renderer', description: 'Home feed (desktop)', lastSuccessTime: 0, failureCount: 0 },
+      { selector: 'ytd-grid-video-renderer', description: 'Grid view (desktop)', lastSuccessTime: 0, failureCount: 0 },
+      { selector: 'ytd-rich-item-renderer', description: 'Rich grid (new home desktop)', lastSuccessTime: 0, failureCount: 0 },
+      { selector: 'ytd-compact-video-renderer', description: 'Sidebar (desktop)', lastSuccessTime: 0, failureCount: 0 },
+      { selector: 'ytm-shorts-lockup-view-model', description: 'Shorts (mobile/desktop)', lastSuccessTime: 0, failureCount: 0 },
+      { selector: 'ytd-reel-item-renderer', description: 'Shorts shelf (desktop)', lastSuccessTime: 0, failureCount: 0 },
+      { selector: 'ytd-ad-slot-renderer', description: 'Ad slot containers', lastSuccessTime: 0, failureCount: 0 },
+      { selector: 'ytd-in-feed-ad-layout-renderer', description: 'In-feed ads', lastSuccessTime: 0, failureCount: 0 },
+      { selector: 'ytd-display-ad-renderer', description: 'Display ads', lastSuccessTime: 0, failureCount: 0 },
+      { selector: 'ytd-promoted-sparkles-web-renderer', description: 'Promoted content', lastSuccessTime: 0, failureCount: 0 },
+    ];
   }
 
   private async loadEnabledState() {
@@ -96,36 +124,97 @@ class YouTubeFilter {
       return;
     }
 
-    // YouTube uses different selectors for different pages
-    const selectors = [
-      'ytd-video-renderer',                  // Home feed (desktop)
-      'ytd-grid-video-renderer',             // Grid view (desktop)
-      'ytd-rich-item-renderer',              // Rich grid (new home desktop)
-      'ytd-compact-video-renderer',          // Sidebar (desktop)
-      'ytm-shorts-lockup-view-model',        // Shorts (mobile/desktop)
-      'ytd-reel-item-renderer',              // Shorts shelf (desktop)
-      'ytd-ad-slot-renderer',                // Ad slot containers
-      'ytd-in-feed-ad-layout-renderer',      // In-feed ads
-      'ytd-display-ad-renderer',             // Display ads
-      'ytd-promoted-sparkles-web-renderer',  // Promoted content
-    ];
+    let totalElementsProcessed = 0;
 
-    selectors.forEach(selector => {
-      const videos = document.querySelectorAll(selector);
-      videos.forEach(video => this.processVideo(video as HTMLElement));
+    // Try each selector and track success/failure
+    this.selectorConfigs.forEach(config => {
+      try {
+        const videos = document.querySelectorAll(config.selector);
+
+        if (videos.length > 0) {
+          // Selector is working - update success time and reset failures
+          config.lastSuccessTime = Date.now();
+          config.failureCount = 0;
+          totalElementsProcessed += videos.length;
+
+          videos.forEach(video => {
+            try {
+              this.processVideo(video as HTMLElement);
+            } catch (error) {
+              console.error(`[YT Filter] Error processing video with selector ${config.selector}:`, error);
+            }
+          });
+        } else {
+          // No elements found - increment failure count
+          config.failureCount++;
+        }
+      } catch (error) {
+        console.error(`[YT Filter] Error with selector ${config.selector}:`, error);
+        config.failureCount++;
+      }
     });
 
+    // Fallback: try generic video-like patterns if no selectors worked
+    if (totalElementsProcessed === 0) {
+      this.tryFallbackSelectors();
+    }
+  }
+
+  private tryFallbackSelectors() {
+    // Generic fallback patterns that might catch new YouTube structures
+    const fallbackSelectors = [
+      '[id*="video-"]',           // Elements with video in ID
+      '[class*="video-"]',        // Elements with video in class
+      'a[href*="/watch?v="]',     // Video links
+      'a[href*="/shorts/"]',      // Shorts links
+    ];
+
+    fallbackSelectors.forEach(selector => {
+      try {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(element => {
+          try {
+            // Process parent containers that might contain video info
+            const container = element.closest('[id], [class]') as HTMLElement;
+            if (container && container.textContent) {
+              this.processVideo(container);
+            }
+          } catch {
+            // Silent fail for fallback attempts
+          }
+        });
+      } catch {
+        // Silent fail for fallback attempts
+      }
+    });
   }
 
   private processVideo(element: HTMLElement) {
-    // Get all text content from the element and its children
-    const allText = element.textContent || '';
+    try {
+      // Skip if already processed
+      if (element.dataset.ytFilterProcessed === 'true') {
+        return;
+      }
 
-    // Check if any filter matches any text in the element
-    const matchedFilter = this.shouldFilterByText(allText);
-    if (matchedFilter) {
-      console.log(`[YT Filter] Blocked element containing <<${matchedFilter}>>`);
-      this.removeVideo(element);
+      // Mark as processed to avoid reprocessing
+      element.dataset.ytFilterProcessed = 'true';
+
+      // Get all text content from the element and its children
+      const allText = element.textContent || '';
+
+      // Skip if no text content
+      if (!allText.trim()) {
+        return;
+      }
+
+      // Check if any filter matches any text in the element
+      const matchedFilter = this.shouldFilterByText(allText);
+      if (matchedFilter) {
+        console.log(`[YT Filter] Blocked element containing <<${matchedFilter}>>`);
+        this.removeVideo(element);
+      }
+    } catch (error) {
+      console.error('[YT Filter] Error processing video element:', error);
     }
   }
 
@@ -143,16 +232,43 @@ class YouTubeFilter {
   }
 
   private removeVideo(element: HTMLElement) {
-    // For grid layouts, we need to remove the parent container
-    // ytd-rich-item-renderer is the parent for new YouTube layout
-    const richItemParent = element.closest('ytd-rich-item-renderer');
-    if (richItemParent) {
-      richItemParent.remove();
-      return;
-    }
+    try {
+      // Try common parent containers in order of preference
+      const parentSelectors = [
+        'ytd-rich-item-renderer',      // New grid layout
+        'ytd-video-renderer',           // Feed layout
+        'ytd-grid-video-renderer',      // Grid layout
+        'ytd-compact-video-renderer',   // Sidebar
+        'ytd-reel-item-renderer',       // Shorts
+      ];
 
-    // For other layouts, remove the element itself
-    element.remove();
+      // Try to find and remove the appropriate parent container
+      for (const selector of parentSelectors) {
+        const parent = element.closest(selector);
+        if (parent) {
+          parent.remove();
+          return;
+        }
+      }
+
+      // Fallback: try to find any container element with video-related attributes
+      const container = element.closest('[id*="video"], [class*="video"], [id*="content"], [class*="item"]');
+      if (container && container !== element) {
+        container.remove();
+        return;
+      }
+
+      // Last resort: remove the element itself
+      element.remove();
+    } catch (error) {
+      console.error('[YT Filter] Error removing video element:', error);
+      // Try basic removal as absolute fallback
+      try {
+        element.style.display = 'none';
+      } catch (hideError) {
+        console.error('[YT Filter] Could not hide element:', hideError);
+      }
+    }
   }
 
   destroy() {
