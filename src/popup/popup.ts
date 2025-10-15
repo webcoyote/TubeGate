@@ -58,7 +58,7 @@ class PopupController {
 
     // Feedback
     this.feedbackBtn.addEventListener('click', () => {
-      chrome.tabs.create({ url: 'https://github.com/yourusername/yt-filter/issues' });
+      chrome.tabs.create({ url: 'https://github.com/webcoyote/yt-filter/issues' });
     });
   }
 

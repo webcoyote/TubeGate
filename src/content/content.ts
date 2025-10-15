@@ -6,7 +6,6 @@ class YouTubeFilter {
   private processedVideos = new Set<string>();
 
   async init() {
-    console.log('YouTube Filter: Initializing...');
     await this.loadFilters();
     this.startObserving();
     this.filterExistingVideos();
@@ -22,7 +21,6 @@ class YouTubeFilter {
 
   private async loadFilters() {
     this.filters = await Storage.getAllFilters();
-    console.log('YouTube Filter: Loaded filters:', this.filters);
   }
 
   private startObserving() {
@@ -39,10 +37,12 @@ class YouTubeFilter {
   private filterExistingVideos() {
     // YouTube uses different selectors for different pages
     const selectors = [
-      'ytd-video-renderer',           // Home feed
-      'ytd-grid-video-renderer',      // Grid view
-      'ytd-rich-item-renderer',       // Rich grid (new home)
-      'ytd-compact-video-renderer'    // Sidebar
+      'ytd-video-renderer',              // Home feed (desktop)
+      'ytd-grid-video-renderer',         // Grid view (desktop)
+      'ytd-rich-item-renderer',          // Rich grid (new home desktop)
+      'ytd-compact-video-renderer',      // Sidebar (desktop)
+      'ytm-shorts-lockup-view-model',    // Shorts (mobile/desktop)
+      'ytd-reel-item-renderer'           // Shorts shelf (desktop)
     ];
 
     selectors.forEach(selector => {
@@ -54,7 +54,7 @@ class YouTubeFilter {
   private processVideo(element: HTMLElement) {
     // Create unique ID for this video element
     const videoId = this.getVideoId(element);
-    if (!videoId || this.processedVideos.has(videoId)) {
+    if (!videoId) {
       return;
     }
 
@@ -64,42 +64,76 @@ class YouTubeFilter {
     }
 
     if (this.shouldFilter(title)) {
-      console.log('YouTube Filter: Hiding video:', title);
+      // Always hide matching videos, even if we've seen this video ID before
+      // (YouTube can show the same video in multiple places/pages)
       this.hideVideo(element);
-      this.processedVideos.add(videoId);
-      Storage.incrementBlockedCount();
-    } else {
-      console.debug('YouTube Filter: Showing video:', title);
+
+      // Only increment counter if this is the first time we've blocked this video
+      if (!this.processedVideos.has(videoId)) {
+        this.processedVideos.add(videoId);
+        Storage.incrementBlockedCount();
+      }
     }
   }
 
   private getVideoId(element: HTMLElement): string | null {
-    // Try to get the video link
-    const link = element.querySelector('a#video-title, a#thumbnail');
-    if (link instanceof HTMLAnchorElement) {
-      return link.href;
+    // Try multiple link selectors (regular videos and Shorts)
+    const linkSelectors = [
+      'a#video-title',
+      'a#thumbnail',
+      'a[href^="/shorts/"]',
+      'a.shortsLockupViewModelHostEndpoint'
+    ];
+
+    for (const selector of linkSelectors) {
+      const link = element.querySelector(selector);
+      if (link instanceof HTMLAnchorElement) {
+        return link.href;
+      }
     }
+
     return null;
   }
 
   private getVideoTitle(element: HTMLElement): string | null {
-    // Multiple possible title selectors
+    // Strategy 1: Try specific title selectors
     const titleSelectors = [
-      '#video-title',
-      'h3 a',
-      'a#video-title-link',
-      '.title'
+      '#video-title',                              // Standard video title
+      'a#video-title-link',                        // Some grid views
+      '.title',                                    // Generic title class
+      'h3 a',                                      // Title in heading
+      'a.shortsLockupViewModelHostEndpoint',       // Shorts link (contains title/aria-label)
+      '.shortsLockupViewModelHostMetadataTitle a'  // Shorts title metadata
     ];
 
     for (const selector of titleSelectors) {
       const titleElement = element.querySelector(selector);
       if (titleElement) {
-        const title = titleElement.textContent?.trim() ||
-                     titleElement.getAttribute('title') ||
-                     titleElement.getAttribute('aria-label');
-        if (title) {
+        const title = titleElement.getAttribute('title') ||
+                     titleElement.getAttribute('aria-label') ||
+                     titleElement.textContent?.trim();
+        if (title && title.length > 0) {
           return title;
         }
+      }
+    }
+
+    // Strategy 2: For Shorts, look for span with role="text" inside title area
+    const shortsSpan = element.querySelector('.shortsLockupViewModelHostMetadataTitle span[role="text"]');
+    if (shortsSpan) {
+      const title = shortsSpan.textContent?.trim();
+      if (title && title.length > 0) {
+        return title;
+      }
+    }
+
+    // Strategy 3: Fallback - search for any link with title or aria-label
+    const links = element.querySelectorAll('a');
+    for (let i = 0; i < links.length; i++) {
+      const link = links[i];
+      const title = link.getAttribute('title') || link.getAttribute('aria-label');
+      if (title && title.length > 10) { // Reasonable title length
+        return title;
       }
     }
 
@@ -115,9 +149,16 @@ class YouTubeFilter {
   }
 
   private hideVideo(element: HTMLElement) {
-    // Instead of removing, hide with CSS to avoid breaking layout
-    element.style.display = 'none';
-    element.setAttribute('data-yt-filter-hidden', 'true');
+    // For grid layouts, we need to remove the parent container
+    // ytd-rich-item-renderer is the parent for new YouTube layout
+    const richItemParent = element.closest('ytd-rich-item-renderer');
+    if (richItemParent) {
+      richItemParent.remove();
+      return;
+    }
+
+    // For other layouts, remove the element itself
+    element.remove();
   }
 
   destroy() {
