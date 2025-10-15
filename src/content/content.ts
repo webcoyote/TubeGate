@@ -77,19 +77,24 @@ class YouTubeFilter {
     const allText = element.textContent || '';
 
     // Check if any filter matches any text in the element
-    if (this.shouldFilterByText(allText)) {
-      console.log('[YT Filter] Blocked element containing filtered text');
+    const matchedFilter = this.shouldFilterByText(allText);
+    if (matchedFilter) {
+      console.log(`[YT Filter] Blocked element containing <<${matchedFilter}>>`);
       this.removeVideo(element);
     }
   }
 
-  private shouldFilterByText(text: string): boolean {
+  private shouldFilterByText(text: string): string | null {
     const lowerText = text.toLowerCase();
 
-    return this.filters.some(filter => {
+    for (const filter of this.filters) {
       const lowerFilter = filter.toLowerCase();
-      return lowerText.includes(lowerFilter);
-    });
+      if (lowerText.includes(lowerFilter)) {
+        return filter;
+      }
+    }
+
+    return null;
   }
 
   private removeVideo(element: HTMLElement) {
