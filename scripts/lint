@@ -56,6 +56,11 @@ fi
 # Scan all the files
 EXITCODE=0
 for file in "${FILES[@]}"; do
+    # Skip binary files
+    if ! file --mime-encoding "$file" | grep -q 'us-ascii\|utf-8\|iso-8859'; then
+        trace "Skipping $file (binary file)"
+        continue
+    fi
     # Ignore files that don't have shell-script shebang: "#!...sh"
     if ! awk 'NR==1 && /^#!/ && /sh$/{exit 0} {exit 1}' "$file" ; then
         trace "Skipping $file (not shell script)"
