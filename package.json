@@ -8,8 +8,8 @@
     "build:prod": "webpack --mode production"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Patrick Wyatt",
+  "license": "Apache-2.0",
   "packageManager": "pnpm@10.18.2",
   "devDependencies": {
     "@types/chrome": "^0.1.24",

@@ -46,4 +46,8 @@ pnpm run watch
 
 ## License
 
-ISC
+Apache License, Version 2.0
+
+TubeGate Copyright © 2025 Patrick Wyatt
+
+See [LICENSE](LICENSE.md) for details.
