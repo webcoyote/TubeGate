@@ -3,9 +3,8 @@ import { Storage } from '../utils/storage';
 class PopupController {
   private tabBtns: NodeListOf<HTMLElement>;
   private tabContents: NodeListOf<HTMLElement>;
-  private customFiltersList: HTMLElement;
-  private newFilterInput: HTMLInputElement;
-  private addFilterBtn: HTMLElement;
+  private filtersTextarea: HTMLTextAreaElement;
+  private saveFiltersBtn: HTMLElement;
   private blockedCountEl: HTMLElement;
   private shownCountEl: HTMLElement;
   private filterCountEl: HTMLElement;
@@ -15,9 +14,8 @@ class PopupController {
   constructor() {
     this.tabBtns = document.querySelectorAll('.tab-btn');
     this.tabContents = document.querySelectorAll('.tab-content');
-    this.customFiltersList = document.getElementById('customFiltersList')!;
-    this.newFilterInput = document.getElementById('newFilterInput') as HTMLInputElement;
-    this.addFilterBtn = document.getElementById('addFilterBtn')!;
+    this.filtersTextarea = document.getElementById('filtersTextarea') as HTMLTextAreaElement;
+    this.saveFiltersBtn = document.getElementById('saveFiltersBtn')!;
     this.blockedCountEl = document.getElementById('blockedCount')!;
     this.shownCountEl = document.getElementById('shownCount')!;
     this.filterCountEl = document.getElementById('filterCount')!;
@@ -38,13 +36,8 @@ class PopupController {
       btn.addEventListener('click', () => this.switchTab(btn.dataset.tab!));
     });
 
-    // Add filter
-    this.addFilterBtn.addEventListener('click', () => this.addFilter());
-    this.newFilterInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        this.addFilter();
-      }
-    });
+    // Save filters
+    this.saveFiltersBtn.addEventListener('click', () => this.saveFilters());
 
     // Reset statistics
     this.resetStatsBtn.addEventListener('click', () => this.resetStatistics());
@@ -66,8 +59,8 @@ class PopupController {
   }
 
   private async loadData() {
-    // Load custom filters
-    await this.renderCustomFilters();
+    // Load custom filters into textarea
+    await this.loadFiltersToTextarea();
 
     // Load statistics
     await this.updateStatistics();
@@ -76,52 +69,51 @@ class PopupController {
     await this.updateFilterCount();
   }
 
-  private async renderCustomFilters() {
+  private async loadFiltersToTextarea() {
     const filters = await Storage.getCustomFilters();
-
-    if (filters.length === 0) {
-      this.customFiltersList.innerHTML = '<div class="empty-state">No custom filters yet</div>';
-      return;
-    }
-
-    this.customFiltersList.innerHTML = filters.map(filter => `
-      <div class="filter-item">
-        <span class="filter-text">${this.escapeHtml(filter)}</span>
-        <button class="filter-remove" data-filter="${this.escapeHtml(filter)}">×</button>
-      </div>
-    `).join('');
-
-    // Add event listeners to remove buttons
-    this.customFiltersList.querySelectorAll('.filter-remove').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        const filter = (e.target as HTMLElement).dataset.filter!;
-        await this.removeFilter(filter);
-      });
-    });
+    // Display one filter per line in the textarea
+    this.filtersTextarea.value = filters.join('\n');
   }
 
-  private async addFilter() {
-    const filterText = this.newFilterInput.value.trim().toLowerCase();
+  private parseFiltersFromText(text: string): string[] {
+    const filters: string[] = [];
 
-    if (!filterText) {
-      return;
+    // Split by newlines first
+    const lines = text.split('\n');
+
+    for (const line of lines) {
+      // Remove comments (everything after #)
+      const withoutComments = line.split('#')[0];
+
+      // Split by commas and semicolons
+      const parts = withoutComments.split(/[,;]/);
+
+      for (const part of parts) {
+        const trimmed = part.trim().toLowerCase();
+        if (trimmed && !filters.includes(trimmed)) {
+          filters.push(trimmed);
+        }
+      }
     }
 
-    if (filterText.length > 50) {
-      alert('Filter keyword is too long (max 50 characters)');
-      return;
-    }
-
-    await Storage.addCustomFilter(filterText);
-    this.newFilterInput.value = '';
-    await this.renderCustomFilters();
-    await this.updateFilterCount();
+    return filters;
   }
 
-  private async removeFilter(filter: string) {
-    await Storage.removeCustomFilter(filter);
-    await this.renderCustomFilters();
+  private async saveFilters() {
+    const text = this.filtersTextarea.value;
+    const filters = this.parseFiltersFromText(text);
+
+    await Storage.setCustomFilters(filters);
+
+    // Reload the textarea to show the cleaned up list
+    await this.loadFiltersToTextarea();
     await this.updateFilterCount();
+
+    // Show brief confirmation
+    this.saveFiltersBtn.textContent = 'Saved!';
+    setTimeout(() => {
+      this.saveFiltersBtn.textContent = 'Save Filters';
+    }, 1500);
   }
 
   private async updateStatistics() {
@@ -146,12 +138,6 @@ class PopupController {
       });
       await this.updateStatistics();
     }
-  }
-
-  private escapeHtml(text: string): string {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
   }
 }
 
