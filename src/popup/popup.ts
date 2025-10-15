@@ -43,7 +43,7 @@ class PopupController {
 
     // Feedback
     this.feedbackBtn.addEventListener('click', () => {
-      chrome.tabs.create({ url: 'https://github.com/webcoyote/yt-filter/issues' });
+      chrome.tabs.create({ url: 'https://github.com/webcoyote/TubeGate/issues' });
     });
   }
 
@@ -66,6 +66,21 @@ class PopupController {
       if (text) {
         await Storage.setCustomFiltersText(text);
       }
+    }
+
+    // If still empty, provide default suggestions
+    if (!text || text.trim() === '') {
+      text = `# Welcome to TubeGate!
+# Add keywords to filter (one per line, or separated by commas)
+# Lines starting with # are comments and will be ignored
+
+# Here are some suggestions (uncomment to activate):
+# MLB, NBA, NFL, golf
+
+# Remove ads
+sponsored
+`;
+      await Storage.setCustomFiltersText(text);
     }
 
     this.filtersTextarea.value = text;
