@@ -34,23 +34,23 @@ export class Storage {
     try {
       // useSync preference is always stored locally (per-device setting)
       const result = await chrome.storage.local.get(STORAGE_KEYS.USE_SYNC);
-      const useSync = result[STORAGE_KEYS.USE_SYNC] !== false; // Default to true (sync enabled)
+      const useSync = result[STORAGE_KEYS.USE_SYNC] === true; // Default to false (local storage only)
       return useSync ? chrome.storage.sync : chrome.storage.local;
     } catch (error) {
       this.logStorageError('getStorageArea', error);
-      // Default to sync on error
-      return chrome.storage.sync;
+      // Default to local storage on error
+      return chrome.storage.local;
     }
   }
 
   static async getUseSync(): Promise<boolean> {
     try {
       const result = await chrome.storage.local.get(STORAGE_KEYS.USE_SYNC);
-      // Default to true (sync enabled)
-      return result[STORAGE_KEYS.USE_SYNC] !== false;
+      // Default to false (local storage only)
+      return result[STORAGE_KEYS.USE_SYNC] === true;
     } catch (error) {
       this.logStorageError('getUseSync', error);
-      return true;
+      return false;
     }
   }
 
