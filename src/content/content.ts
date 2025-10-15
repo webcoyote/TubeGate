@@ -189,6 +189,26 @@ class YouTubeFilter {
     });
   }
 
+  private isMainVideoPlayer(element: HTMLElement): boolean {
+    // Check if we're on a watch page
+    if (!window.location.pathname.includes('/watch')) {
+      return false;
+    }
+
+    // Check if element is within the primary video player container
+    // YouTube's watch page has the main video in #player or #primary-inner
+    const playerContainer = element.closest('#player, #movie_player, ytd-watch-flexy #primary-inner');
+    if (playerContainer) {
+      // Additional check: main video is typically in the top portion and has specific classes
+      const videoContainer = element.closest('ytd-player, #ytd-player');
+      if (videoContainer) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   private processVideo(element: HTMLElement) {
     try {
       // Skip if already processed
@@ -198,6 +218,11 @@ class YouTubeFilter {
 
       // Mark as processed to avoid reprocessing
       element.dataset.ytFilterProcessed = 'true';
+
+      // Don't filter the main video player on watch pages
+      if (this.isMainVideoPlayer(element)) {
+        return;
+      }
 
       // Get all text content from the element and its children
       const allText = element.textContent || '';
