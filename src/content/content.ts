@@ -54,7 +54,7 @@ class YouTubeFilter {
   }
 
   private startObserving() {
-    this.observer = new MutationObserver((mutations) => {
+    this.observer = new MutationObserver((_mutations) => {
       // Debounce the filtering to avoid excessive processing
       if (this.debounceTimer !== null) {
         clearTimeout(this.debounceTimer);

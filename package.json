@@ -5,7 +5,9 @@
   "scripts": {
     "build": "webpack",
     "watch": "webpack --watch",
-    "build:prod": "webpack --mode production"
+    "build:prod": "webpack --mode production",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "keywords": [],
   "author": "Patrick Wyatt",
@@ -13,7 +15,10 @@
   "packageManager": "pnpm@10.18.2",
   "devDependencies": {
     "@types/chrome": "^0.1.24",
+    "@typescript-eslint/eslint-plugin": "^8.46.1",
+    "@typescript-eslint/parser": "^8.46.1",
     "copy-webpack-plugin": "^13.0.1",
+    "eslint": "^9.37.0",
     "ts-loader": "^9.5.4",
     "typescript": "^5.9.3",
     "webpack": "^5.102.1",

@@ -33,7 +33,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 });
 
 // Listen for messages from content script or popup
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
   if (message.type === 'VIDEO_BLOCKED') {
     console.log('Video blocked:', message.title);
   }

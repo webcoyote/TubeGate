@@ -14,7 +14,7 @@ class BuildNotifyPlugin {
     try {
       const packageJson = require(path.join(__dirname, '..', 'package.json'));
       this.projectName = packageJson.name || 'Project';
-    } catch (error) {
+    } catch {
       this.projectName = 'Project';
     }
   }
@@ -32,7 +32,7 @@ class BuildNotifyPlugin {
     });
   }
 
-  notify(message, isSuccess) {
+  notify(message, _isSuccess) {
     exec(`"${this.speakScript}" "${message}"`, (error) => {
       if (error) {
         // Fallback to console speak

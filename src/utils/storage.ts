@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { STORAGE_KEYS, FilterData } from '../types';
+import { STORAGE_KEYS } from '../types';
 
 export class Storage {
   static async getCustomFilters(): Promise<string[]> {
