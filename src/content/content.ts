@@ -3,7 +3,6 @@ import { Storage } from '../utils/storage';
 class YouTubeFilter {
   private filters: string[] = [];
   private observer: MutationObserver | null = null;
-  private processedVideos = new Set<string>();
 
   async init() {
     await this.loadFilters();
@@ -52,7 +51,6 @@ class YouTubeFilter {
   }
 
   private processVideo(element: HTMLElement) {
-    // Create unique ID for this video element
     const videoId = this.getVideoId(element);
     if (!videoId) {
       return;
@@ -64,23 +62,11 @@ class YouTubeFilter {
     }
 
     const channelName = this.getChannelName(element);
-
-    // Only count videos we haven't seen before
-    if (!this.processedVideos.has(videoId)) {
-      this.processedVideos.add(videoId);
-
-      if (this.shouldFilter(title, channelName)) {
-        console.log('[YT Filter] Blocked:', title, channelName ? `(${channelName})` : '');
-        Storage.incrementBlockedCount();
-        this.hideVideo(element);
-      } else {
-        console.log('[YT Filter] Shown:', title, channelName ? `(${channelName})` : '');
-        Storage.incrementShownCount();
-      }
-    } else if (this.shouldFilter(title, channelName)) {
-      // Always hide matching videos, even if we've seen this video ID before
-      // (YouTube can show the same video in multiple places/pages)
+    if (this.shouldFilter(title, channelName)) {
+      console.log('[YT Filter] Blocked:', title, channelName ? `(${channelName})` : '');
       this.hideVideo(element);
+    } else {
+      console.debug('[YT Filter] Shown:', title, channelName ? `(${channelName})` : '');
     }
   }
 

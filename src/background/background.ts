@@ -8,14 +8,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
       [STORAGE_KEYS.CUSTOM_FILTERS]: []
     });
 
-    await chrome.storage.local.set({
-      [STORAGE_KEYS.STATISTICS]: {
-        blockedToday: 0,
-        lastResetDate: new Date().toDateString()
-      }
-    });
-
-    // Open welcome page or options page
+    // Open welcome page
     chrome.tabs.create({
       url: 'https://www.youtube.com'
     });
