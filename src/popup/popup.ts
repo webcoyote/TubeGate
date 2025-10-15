@@ -22,12 +22,14 @@ class PopupController {
   private saveFiltersBtn: HTMLElement;
   private filterCountEl: HTMLElement;
   private feedbackBtn: HTMLElement;
+  private enabledToggle: HTMLInputElement;
 
   constructor() {
     this.filtersTextarea = document.getElementById('filtersTextarea') as HTMLTextAreaElement;
     this.saveFiltersBtn = document.getElementById('saveFiltersBtn')!;
     this.filterCountEl = document.getElementById('filterCount')!;
     this.feedbackBtn = document.getElementById('feedbackBtn')!;
+    this.enabledToggle = document.getElementById('enabledToggle') as HTMLInputElement;
 
     this.init();
   }
@@ -45,14 +47,26 @@ class PopupController {
     this.feedbackBtn.addEventListener('click', () => {
       chrome.tabs.create({ url: 'https://github.com/webcoyote/TubeGate/issues' });
     });
+
+    // Enable/disable toggle
+    this.enabledToggle.addEventListener('change', () => this.toggleEnabled());
   }
 
   private async loadData() {
+    // Load enabled state
+    const isEnabled = await Storage.isEnabled();
+    this.enabledToggle.checked = isEnabled;
+
     // Load custom filters into textarea
     await this.loadFiltersToTextarea();
 
     // Update filter count
     await this.updateFilterCount();
+  }
+
+  private async toggleEnabled() {
+    const enabled = this.enabledToggle.checked;
+    await Storage.setEnabled(enabled);
   }
 
   private async loadFiltersToTextarea() {

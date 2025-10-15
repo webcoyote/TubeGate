@@ -53,4 +53,14 @@ export class Storage {
   static async getAllFilters(): Promise<string[]> {
     return await this.getCustomFilters();
   }
+
+  static async isEnabled(): Promise<boolean> {
+    const result = await chrome.storage.sync.get(STORAGE_KEYS.ENABLED);
+    // Default to enabled if not set
+    return result[STORAGE_KEYS.ENABLED] !== false;
+  }
+
+  static async setEnabled(enabled: boolean): Promise<void> {
+    await chrome.storage.sync.set({ [STORAGE_KEYS.ENABLED]: enabled });
+  }
 }

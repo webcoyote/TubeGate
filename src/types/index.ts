@@ -18,14 +18,17 @@
 export interface FilterData {
   customFilters: string[];
   customFiltersText: string;
+  enabled: boolean;
 }
 
 export interface StorageKeys {
   CUSTOM_FILTERS: 'customFilters';
   CUSTOM_FILTERS_TEXT: 'customFiltersText';
+  ENABLED: 'enabled';
 }
 
 export const STORAGE_KEYS: StorageKeys = {
   CUSTOM_FILTERS: 'customFilters',
-  CUSTOM_FILTERS_TEXT: 'customFiltersText'
+  CUSTOM_FILTERS_TEXT: 'customFiltersText',
+  ENABLED: 'enabled'
 };

@@ -22,9 +22,11 @@ class YouTubeFilter {
   private observer: MutationObserver | null = null;
   private debounceTimer: number | null = null;
   private readonly DEBOUNCE_DELAY = 100; // milliseconds
+  private enabled: boolean = true;
 
   async init() {
     await this.loadFilters();
+    await this.loadEnabledState();
     this.startObserving();
     this.filterExistingVideos();
 
@@ -34,7 +36,15 @@ class YouTubeFilter {
         this.loadFilters();
         this.filterExistingVideos();
       }
+      if (changes.enabled !== undefined) {
+        this.loadEnabledState();
+        this.filterExistingVideos();
+      }
     });
+  }
+
+  private async loadEnabledState() {
+    this.enabled = await Storage.isEnabled();
   }
 
   private async loadFilters() {
@@ -62,6 +72,11 @@ class YouTubeFilter {
   }
 
   private filterExistingVideos() {
+    // Don't filter if disabled
+    if (!this.enabled) {
+      return;
+    }
+
     // YouTube uses different selectors for different pages
     const selectors = [
       'ytd-video-renderer',                  // Home feed (desktop)
