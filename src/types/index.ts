@@ -19,16 +19,19 @@ export interface FilterData {
   customFilters: string[];
   customFiltersText: string;
   enabled: boolean;
+  useSync: boolean;
 }
 
 export interface StorageKeys {
   CUSTOM_FILTERS: 'customFilters';
   CUSTOM_FILTERS_TEXT: 'customFiltersText';
   ENABLED: 'enabled';
+  USE_SYNC: 'useSync';
 }
 
 export const STORAGE_KEYS: StorageKeys = {
   CUSTOM_FILTERS: 'customFilters',
   CUSTOM_FILTERS_TEXT: 'customFiltersText',
-  ENABLED: 'enabled'
+  ENABLED: 'enabled',
+  USE_SYNC: 'useSync'
 };

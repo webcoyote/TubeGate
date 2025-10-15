@@ -29,37 +29,62 @@ export class Storage {
     console.error(`[Storage] Error during ${operation}:`, error);
   }
 
+  // Get the appropriate storage area based on user preference
+  private static async getStorageArea(): Promise<typeof chrome.storage.sync | typeof chrome.storage.local> {
+    try {
+      // useSync preference is always stored locally (per-device setting)
+      const result = await chrome.storage.local.get(STORAGE_KEYS.USE_SYNC);
+      const useSync = result[STORAGE_KEYS.USE_SYNC] !== false; // Default to true (sync enabled)
+      return useSync ? chrome.storage.sync : chrome.storage.local;
+    } catch (error) {
+      this.logStorageError('getStorageArea', error);
+      // Default to sync on error
+      return chrome.storage.sync;
+    }
+  }
+
+  static async getUseSync(): Promise<boolean> {
+    try {
+      const result = await chrome.storage.local.get(STORAGE_KEYS.USE_SYNC);
+      // Default to true (sync enabled)
+      return result[STORAGE_KEYS.USE_SYNC] !== false;
+    } catch (error) {
+      this.logStorageError('getUseSync', error);
+      return true;
+    }
+  }
+
+  static async setUseSync(useSync: boolean): Promise<void> {
+    try {
+      // Always store this preference locally (per-device setting)
+      await chrome.storage.local.set({ [STORAGE_KEYS.USE_SYNC]: useSync });
+    } catch (error) {
+      this.logStorageError('setUseSync', error);
+      throw error;
+    }
+  }
+
   static async getCustomFilters(): Promise<string[]> {
     try {
-      const result = await chrome.storage.sync.get(STORAGE_KEYS.CUSTOM_FILTERS);
+      const storage = await this.getStorageArea();
+      const result = await storage.get(STORAGE_KEYS.CUSTOM_FILTERS);
       return result[STORAGE_KEYS.CUSTOM_FILTERS] || [];
     } catch (error) {
       this.logStorageError('getCustomFilters', error);
-      // Fallback to local storage
-      try {
-        const result = await chrome.storage.local.get(STORAGE_KEYS.CUSTOM_FILTERS);
-        return result[STORAGE_KEYS.CUSTOM_FILTERS] || [];
-      } catch (localError) {
-        this.logStorageError('getCustomFilters (local fallback)', localError);
-        return [];
-      }
+      return [];
     }
   }
 
   static async setCustomFilters(filters: string[]): Promise<void> {
     try {
-      await chrome.storage.sync.set({ [STORAGE_KEYS.CUSTOM_FILTERS]: filters });
+      const storage = await this.getStorageArea();
+      await storage.set({ [STORAGE_KEYS.CUSTOM_FILTERS]: filters });
     } catch (error) {
       this.logStorageError('setCustomFilters', error);
 
       if (this.isQuotaError(error)) {
-        console.warn('[Storage] Quota exceeded, falling back to local storage');
-        try {
-          await chrome.storage.local.set({ [STORAGE_KEYS.CUSTOM_FILTERS]: filters });
-        } catch (localError) {
-          this.logStorageError('setCustomFilters (local fallback)', localError);
-          throw new Error('Failed to save filters: Storage quota exceeded and local storage also failed');
-        }
+        console.warn('[Storage] Quota exceeded for selected storage type');
+        throw new Error('Failed to save filters: Storage quota exceeded');
       } else {
         throw error;
       }
@@ -68,35 +93,25 @@ export class Storage {
 
   static async getCustomFiltersText(): Promise<string> {
     try {
-      const result = await chrome.storage.sync.get(STORAGE_KEYS.CUSTOM_FILTERS_TEXT);
+      const storage = await this.getStorageArea();
+      const result = await storage.get(STORAGE_KEYS.CUSTOM_FILTERS_TEXT);
       return result[STORAGE_KEYS.CUSTOM_FILTERS_TEXT] || '';
     } catch (error) {
       this.logStorageError('getCustomFiltersText', error);
-      // Fallback to local storage
-      try {
-        const result = await chrome.storage.local.get(STORAGE_KEYS.CUSTOM_FILTERS_TEXT);
-        return result[STORAGE_KEYS.CUSTOM_FILTERS_TEXT] || '';
-      } catch (localError) {
-        this.logStorageError('getCustomFiltersText (local fallback)', localError);
-        return '';
-      }
+      return '';
     }
   }
 
   static async setCustomFiltersText(text: string): Promise<void> {
     try {
-      await chrome.storage.sync.set({ [STORAGE_KEYS.CUSTOM_FILTERS_TEXT]: text });
+      const storage = await this.getStorageArea();
+      await storage.set({ [STORAGE_KEYS.CUSTOM_FILTERS_TEXT]: text });
     } catch (error) {
       this.logStorageError('setCustomFiltersText', error);
 
       if (this.isQuotaError(error)) {
-        console.warn('[Storage] Quota exceeded, falling back to local storage');
-        try {
-          await chrome.storage.local.set({ [STORAGE_KEYS.CUSTOM_FILTERS_TEXT]: text });
-        } catch (localError) {
-          this.logStorageError('setCustomFiltersText (local fallback)', localError);
-          throw new Error('Failed to save filter text: Storage quota exceeded and local storage also failed');
-        }
+        console.warn('[Storage] Quota exceeded for selected storage type');
+        throw new Error('Failed to save filter text: Storage quota exceeded');
       } else {
         throw error;
       }
@@ -133,37 +148,27 @@ export class Storage {
 
   static async isEnabled(): Promise<boolean> {
     try {
-      const result = await chrome.storage.sync.get(STORAGE_KEYS.ENABLED);
+      const storage = await this.getStorageArea();
+      const result = await storage.get(STORAGE_KEYS.ENABLED);
       // Default to enabled if not set
       return result[STORAGE_KEYS.ENABLED] !== false;
     } catch (error) {
       this.logStorageError('isEnabled', error);
-      // Fallback to local storage
-      try {
-        const result = await chrome.storage.local.get(STORAGE_KEYS.ENABLED);
-        return result[STORAGE_KEYS.ENABLED] !== false;
-      } catch (localError) {
-        this.logStorageError('isEnabled (local fallback)', localError);
-        // Default to enabled on error
-        return true;
-      }
+      // Default to enabled on error
+      return true;
     }
   }
 
   static async setEnabled(enabled: boolean): Promise<void> {
     try {
-      await chrome.storage.sync.set({ [STORAGE_KEYS.ENABLED]: enabled });
+      const storage = await this.getStorageArea();
+      await storage.set({ [STORAGE_KEYS.ENABLED]: enabled });
     } catch (error) {
       this.logStorageError('setEnabled', error);
 
       if (this.isQuotaError(error)) {
-        console.warn('[Storage] Quota exceeded, falling back to local storage');
-        try {
-          await chrome.storage.local.set({ [STORAGE_KEYS.ENABLED]: enabled });
-        } catch (localError) {
-          this.logStorageError('setEnabled (local fallback)', localError);
-          throw new Error('Failed to save enabled state: Storage quota exceeded and local storage also failed');
-        }
+        console.warn('[Storage] Quota exceeded for selected storage type');
+        throw new Error('Failed to save enabled state: Storage quota exceeded');
       } else {
         throw error;
       }

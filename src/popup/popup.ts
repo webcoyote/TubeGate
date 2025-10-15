@@ -23,6 +23,7 @@ class PopupController {
   private filterCountEl: HTMLElement;
   private feedbackBtn: HTMLElement;
   private enabledToggle: HTMLInputElement;
+  private syncToggle: HTMLInputElement;
 
   constructor() {
     this.filtersTextarea = document.getElementById('filtersTextarea') as HTMLTextAreaElement;
@@ -30,6 +31,7 @@ class PopupController {
     this.filterCountEl = document.getElementById('filterCount')!;
     this.feedbackBtn = document.getElementById('feedbackBtn')!;
     this.enabledToggle = document.getElementById('enabledToggle') as HTMLInputElement;
+    this.syncToggle = document.getElementById('syncToggle') as HTMLInputElement;
 
     this.init();
   }
@@ -51,6 +53,9 @@ class PopupController {
     // Enable/disable toggle
     this.enabledToggle.addEventListener('change', () => this.toggleEnabled());
 
+    // Sync toggle
+    this.syncToggle.addEventListener('change', () => this.toggleSync());
+
     // Keyboard shortcuts
     document.addEventListener('keydown', (event) => this.handleKeyboardShortcuts(event));
   }
@@ -68,6 +73,10 @@ class PopupController {
       // Load enabled state
       const isEnabled = await Storage.isEnabled();
       this.enabledToggle.checked = isEnabled;
+
+      // Load sync state
+      const useSync = await Storage.getUseSync();
+      this.syncToggle.checked = useSync;
 
       // Load custom filters into textarea
       await this.loadFiltersToTextarea();
@@ -89,6 +98,25 @@ class PopupController {
       // Revert the toggle state
       this.enabledToggle.checked = !this.enabledToggle.checked;
       this.showError('Failed to save setting. Please try again.');
+    }
+  }
+
+  private async toggleSync() {
+    try {
+      const useSync = this.syncToggle.checked;
+      await Storage.setUseSync(useSync);
+
+      // Show confirmation message
+      const message = useSync
+        ? 'Sync enabled. Filters will now sync across browsers where you\'re signed in.'
+        : 'Sync disabled. Filters will only be stored locally on this browser.';
+
+      this.showInfo(message);
+    } catch (error) {
+      console.error('[Popup] Failed to toggle sync state:', error);
+      // Revert the toggle state
+      this.syncToggle.checked = !this.syncToggle.checked;
+      this.showError('Failed to save sync preference. Please try again.');
     }
   }
 
@@ -201,6 +229,22 @@ sponsored
     setTimeout(() => {
       errorDiv.remove();
     }, 5000);
+  }
+
+  private showInfo(message: string) {
+    // Create a temporary info message element
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'info-message';
+    infoDiv.textContent = message;
+    infoDiv.style.cssText = 'color: #2c3e50; padding: 10px; margin: 10px 0; border: 1px solid #667eea; border-radius: 4px; background-color: #e8eaf6;';
+
+    // Insert before the textarea
+    this.filtersTextarea.parentElement?.insertBefore(infoDiv, this.filtersTextarea);
+
+    // Remove after 4 seconds
+    setTimeout(() => {
+      infoDiv.remove();
+    }, 4000);
   }
 }
 
