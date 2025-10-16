@@ -428,9 +428,13 @@ class YouTubeFilter {
     let url = '';
 
     try {
+      // Get the container we'll be replacing to search more broadly
+      const container = this.findContainerToReplace(element);
+      const searchRoot = container || element;
+
       // Try to find the video title
       // Method 1: Look for title link or heading
-      const titleLink = element.querySelector('a#video-title, a#video-title-link, h3 a, .video-title a');
+      const titleLink = searchRoot.querySelector('a#video-title, a#video-title-link, h3 a, .video-title a');
       if (titleLink) {
         title = titleLink.getAttribute('title') || titleLink.getAttribute('aria-label') || titleLink.textContent?.trim() || '';
         const href = titleLink.getAttribute('href');
@@ -441,7 +445,7 @@ class YouTubeFilter {
 
       // Method 2: Look for any link with watch or shorts in href
       if (!url) {
-        const videoLink = element.querySelector('a[href*="/watch"], a[href*="/shorts"]');
+        const videoLink = searchRoot.querySelector('a[href*="/watch"], a[href*="/shorts"]');
         if (videoLink) {
           const href = videoLink.getAttribute('href');
           if (href) {
@@ -455,7 +459,7 @@ class YouTubeFilter {
 
       // Method 3: Look for any anchor tag and extract href
       if (!url) {
-        const anyLink = element.querySelector('a[href]');
+        const anyLink = searchRoot.querySelector('a[href]');
         if (anyLink) {
           const href = anyLink.getAttribute('href');
           if (href && (href.includes('/watch') || href.includes('/shorts') || href.includes('v='))) {
@@ -467,7 +471,7 @@ class YouTubeFilter {
       // Method 4: Look for video ID in data attributes or element structure
       if (!url) {
         // Check for data-video-id attribute
-        const videoIdEl = element.querySelector('[data-video-id]');
+        const videoIdEl = searchRoot.querySelector('[data-video-id]');
         if (videoIdEl) {
           const videoId = videoIdEl.getAttribute('data-video-id');
           if (videoId) {
@@ -476,27 +480,39 @@ class YouTubeFilter {
         }
       }
 
-      // Method 5: Look for title in aria-label attributes
+      // Method 5: Try to extract from container's own attributes
+      if (!url && searchRoot) {
+        const dataId = searchRoot.getAttribute('data-video-id');
+        if (dataId) {
+          url = `https://www.youtube.com/watch?v=${dataId}`;
+        }
+      }
+
+      // Method 6: Search all anchor elements for video URLs
+      if (!url) {
+        const allLinks = searchRoot.querySelectorAll('a[href]');
+        for (const link of Array.from(allLinks)) {
+          const href = link.getAttribute('href');
+          if (href && (href.includes('/watch?v=') || href.includes('/shorts/'))) {
+            url = href.startsWith('http') ? href : `https://www.youtube.com${href}`;
+            break;
+          }
+        }
+      }
+
+      // Method 7: Look for title in aria-label attributes
       if (!title) {
-        const ariaElement = element.querySelector('[aria-label*="video" i], [aria-label*="short" i]');
+        const ariaElement = searchRoot.querySelector('[aria-label*="video" i], [aria-label*="short" i]');
         if (ariaElement) {
           title = ariaElement.getAttribute('aria-label') || '';
         }
       }
 
-      // Method 6: Fallback to first heading text
+      // Method 8: Fallback to first heading text
       if (!title) {
-        const heading = element.querySelector('h1, h2, h3, h4, .title');
+        const heading = searchRoot.querySelector('h1, h2, h3, h4, .title');
         if (heading) {
           title = heading.textContent?.trim() || '';
-        }
-      }
-
-      // Method 7: Try to extract from element's own attributes
-      if (!url) {
-        const dataId = element.getAttribute('data-video-id');
-        if (dataId) {
-          url = `https://www.youtube.com/watch?v=${dataId}`;
         }
       }
 
