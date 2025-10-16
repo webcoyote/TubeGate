@@ -174,4 +174,32 @@ export class Storage {
       }
     }
   }
+
+  static async getPlaceholderMode(): Promise<boolean> {
+    try {
+      const storage = await this.getStorageArea();
+      const result = await storage.get(STORAGE_KEYS.PLACEHOLDER_MODE);
+      // Default to false (remove elements completely)
+      return result[STORAGE_KEYS.PLACEHOLDER_MODE] === true;
+    } catch (error) {
+      this.logStorageError('getPlaceholderMode', error);
+      return false;
+    }
+  }
+
+  static async setPlaceholderMode(enabled: boolean): Promise<void> {
+    try {
+      const storage = await this.getStorageArea();
+      await storage.set({ [STORAGE_KEYS.PLACEHOLDER_MODE]: enabled });
+    } catch (error) {
+      this.logStorageError('setPlaceholderMode', error);
+
+      if (this.isQuotaError(error)) {
+        console.warn('[Storage] Quota exceeded for selected storage type');
+        throw new Error('Failed to save placeholder mode: Storage quota exceeded');
+      } else {
+        throw error;
+      }
+    }
+  }
 }

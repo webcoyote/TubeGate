@@ -30,6 +30,7 @@ class YouTubeFilter {
   private debounceTimer: number | null = null;
   private readonly DEBOUNCE_DELAY = 100; // milliseconds
   private enabled: boolean = true;
+  private placeholderMode: boolean = false;
   private selectorConfigs: SelectorConfig[] = [];
   private readonly MAX_SELECTOR_FAILURES = 10;
   private lastHealthCheck: number = 0;
@@ -40,6 +41,7 @@ class YouTubeFilter {
       this.initializeSelectors();
       await this.loadFilters();
       await this.loadEnabledState();
+      await this.loadPlaceholderMode();
       this.startObserving();
       this.filterExistingVideos();
 
@@ -54,6 +56,12 @@ class YouTubeFilter {
         if (changes.enabled !== undefined) {
           this.loadEnabledState().catch(error => {
             console.error('[YT Filter] Failed to reload enabled state:', error);
+          });
+          this.filterExistingVideos();
+        }
+        if (changes.placeholderMode !== undefined) {
+          this.loadPlaceholderMode().catch(error => {
+            console.error('[YT Filter] Failed to reload placeholder mode:', error);
           });
           this.filterExistingVideos();
         }
@@ -86,6 +94,16 @@ class YouTubeFilter {
       console.error('[YT Filter] Failed to load enabled state:', error);
       // Default to enabled on error
       this.enabled = true;
+    }
+  }
+
+  private async loadPlaceholderMode() {
+    try {
+      this.placeholderMode = await Storage.getPlaceholderMode();
+    } catch (error) {
+      console.error('[YT Filter] Failed to load placeholder mode:', error);
+      // Default to false on error
+      this.placeholderMode = false;
     }
   }
 
@@ -236,7 +254,11 @@ class YouTubeFilter {
       const matchedFilter = this.shouldFilterByText(allText);
       if (matchedFilter) {
         console.log(`[YT Filter] Blocked element containing <<${matchedFilter}>>`);
-        this.removeVideo(element);
+        if (this.placeholderMode) {
+          this.replaceWithPlaceholder(element);
+        } else {
+          this.removeVideo(element);
+        }
       }
     } catch (error) {
       console.error('[YT Filter] Error processing video element:', error);
@@ -294,6 +316,182 @@ class YouTubeFilter {
         console.error('[YT Filter] Could not hide element:', hideError);
       }
     }
+  }
+
+  private replaceWithPlaceholder(element: HTMLElement) {
+    try {
+      // Extract video information
+      const videoInfo = this.extractVideoInfo(element);
+
+      // Find the appropriate parent container
+      const container = this.findContainerToReplace(element);
+      if (!container) {
+        console.warn('[YT Filter] Could not find container to replace');
+        return;
+      }
+
+      // Get dimensions of the container to maintain similar size
+      const rect = container.getBoundingClientRect();
+      const width = rect.width || 300;
+      const height = rect.height || 200;
+
+      // Create placeholder element
+      const placeholder = document.createElement('div');
+      placeholder.className = 'tubegate-placeholder';
+      placeholder.style.cssText = `
+        width: ${width}px;
+        min-height: ${Math.max(height, 100)}px;
+        padding: 16px;
+        margin: 8px;
+        background-color: #f5f5f5;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        box-sizing: border-box;
+        font-family: "Roboto", "Arial", sans-serif;
+      `;
+
+      // Add title
+      const titleEl = document.createElement('div');
+      titleEl.style.cssText = `
+        font-size: 14px;
+        font-weight: 500;
+        color: #030303;
+        margin-bottom: 8px;
+        line-height: 1.4;
+        word-wrap: break-word;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+      `;
+      titleEl.textContent = videoInfo.title || 'Blocked Video';
+      placeholder.appendChild(titleEl);
+
+      // Add link if available
+      if (videoInfo.url) {
+        const linkEl = document.createElement('a');
+        linkEl.href = videoInfo.url;
+        linkEl.target = '_blank';
+        linkEl.rel = 'noopener noreferrer';
+        linkEl.style.cssText = `
+          font-size: 12px;
+          color: #065fd4;
+          text-decoration: none;
+          word-break: break-all;
+        `;
+        linkEl.textContent = 'View video';
+        linkEl.addEventListener('mouseenter', () => {
+          linkEl.style.textDecoration = 'underline';
+        });
+        linkEl.addEventListener('mouseleave', () => {
+          linkEl.style.textDecoration = 'none';
+        });
+        placeholder.appendChild(linkEl);
+      }
+
+      // Replace the container with the placeholder
+      container.replaceWith(placeholder);
+    } catch (error) {
+      console.error('[YT Filter] Error replacing with placeholder:', error);
+      // Fall back to removal if placeholder creation fails
+      this.removeVideo(element);
+    }
+  }
+
+  private extractVideoInfo(element: HTMLElement): { title: string; url: string } {
+    let title = '';
+    let url = '';
+
+    try {
+      // Try to find the video title
+      // Method 1: Look for title link or heading
+      const titleLink = element.querySelector('a#video-title, a#video-title-link, h3 a, .video-title a');
+      if (titleLink) {
+        title = titleLink.getAttribute('title') || titleLink.getAttribute('aria-label') || titleLink.textContent?.trim() || '';
+        const href = titleLink.getAttribute('href');
+        if (href) {
+          url = href.startsWith('http') ? href : `https://www.youtube.com${href}`;
+        }
+      }
+
+      // Method 2: Look for any link with watch or shorts in href
+      if (!url) {
+        const videoLink = element.querySelector('a[href*="/watch"], a[href*="/shorts"]');
+        if (videoLink) {
+          const href = videoLink.getAttribute('href');
+          if (href) {
+            url = href.startsWith('http') ? href : `https://www.youtube.com${href}`;
+          }
+          if (!title) {
+            title = videoLink.getAttribute('title') || videoLink.getAttribute('aria-label') || '';
+          }
+        }
+      }
+
+      // Method 3: Look for title in aria-label attributes
+      if (!title) {
+        const ariaElement = element.querySelector('[aria-label*="video" i], [aria-label*="short" i]');
+        if (ariaElement) {
+          title = ariaElement.getAttribute('aria-label') || '';
+        }
+      }
+
+      // Method 4: Fallback to first heading text
+      if (!title) {
+        const heading = element.querySelector('h1, h2, h3, h4, .title');
+        if (heading) {
+          title = heading.textContent?.trim() || '';
+        }
+      }
+
+      // Clean up title - limit length
+      if (title.length > 150) {
+        title = title.substring(0, 147) + '...';
+      }
+
+      // If still no title, use a generic message
+      if (!title) {
+        title = 'Blocked Video';
+      }
+
+    } catch (error) {
+      console.error('[YT Filter] Error extracting video info:', error);
+      title = 'Blocked Video';
+    }
+
+    return { title, url };
+  }
+
+  private findContainerToReplace(element: HTMLElement): HTMLElement | null {
+    // Try common parent containers in order of preference
+    const parentSelectors = [
+      'ytd-rich-item-renderer',
+      'ytd-video-renderer',
+      'ytd-grid-video-renderer',
+      'ytd-compact-video-renderer',
+      'ytd-reel-item-renderer',
+    ];
+
+    for (const selector of parentSelectors) {
+      const parent = element.closest(selector);
+      if (parent) {
+        return parent as HTMLElement;
+      }
+    }
+
+    // Fallback: try to find any container element
+    const container = element.closest('[id*="video"], [class*="video"], [id*="content"], [class*="item"]');
+    if (container && container !== element) {
+      return container as HTMLElement;
+    }
+
+    // Last resort: return the element itself
+    return element;
   }
 
   destroy() {

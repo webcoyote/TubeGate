@@ -20,6 +20,7 @@ export interface FilterData {
   customFiltersText: string;
   enabled: boolean;
   useSync: boolean;
+  placeholderMode: boolean;
 }
 
 export interface StorageKeys {
@@ -27,11 +28,13 @@ export interface StorageKeys {
   CUSTOM_FILTERS_TEXT: 'customFiltersText';
   ENABLED: 'enabled';
   USE_SYNC: 'useSync';
+  PLACEHOLDER_MODE: 'placeholderMode';
 }
 
 export const STORAGE_KEYS: StorageKeys = {
   CUSTOM_FILTERS: 'customFilters',
   CUSTOM_FILTERS_TEXT: 'customFiltersText',
   ENABLED: 'enabled',
-  USE_SYNC: 'useSync'
+  USE_SYNC: 'useSync',
+  PLACEHOLDER_MODE: 'placeholderMode'
 };
