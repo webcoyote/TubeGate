@@ -255,7 +255,7 @@ class YouTubeFilter {
       if (matchedFilter) {
         console.log(`[YT Filter] Blocked element containing <<${matchedFilter}>>`);
         if (this.placeholderMode) {
-          this.replaceWithPlaceholder(element);
+          this.replaceWithPlaceholder(element, matchedFilter);
         } else {
           this.removeVideo(element);
         }
@@ -318,7 +318,7 @@ class YouTubeFilter {
     }
   }
 
-  private replaceWithPlaceholder(element: HTMLElement) {
+  private replaceWithPlaceholder(element: HTMLElement, matchedFilter: string) {
     try {
       // Extract video information
       const videoInfo = this.extractVideoInfo(element);
@@ -371,6 +371,17 @@ class YouTubeFilter {
       `;
       titleEl.textContent = videoInfo.title || 'Blocked Video';
       placeholder.appendChild(titleEl);
+
+      // Add blocked term indicator
+      const blockedTermEl = document.createElement('div');
+      blockedTermEl.style.cssText = `
+        font-size: 11px;
+        color: #606060;
+        margin-bottom: 8px;
+        font-style: italic;
+      `;
+      blockedTermEl.textContent = `Blocked term: "${matchedFilter}"`;
+      placeholder.appendChild(blockedTermEl);
 
       // Add link if available
       if (videoInfo.url) {
