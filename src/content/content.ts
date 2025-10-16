@@ -30,7 +30,7 @@ class YouTubeFilter {
   private debounceTimer: number | null = null;
   private readonly DEBOUNCE_DELAY = 100; // milliseconds
   private enabled: boolean = true;
-  private placeholderMode: boolean = false;
+  private placeholderMode: boolean = true;
   private selectorConfigs: SelectorConfig[] = [];
   private readonly MAX_SELECTOR_FAILURES = 10;
   private lastHealthCheck: number = 0;
@@ -102,8 +102,8 @@ class YouTubeFilter {
       this.placeholderMode = await Storage.getPlaceholderMode();
     } catch (error) {
       console.error('[YT Filter] Failed to load placeholder mode:', error);
-      // Default to false on error
-      this.placeholderMode = false;
+      // Default to true on error
+      this.placeholderMode = true;
     }
   }
 

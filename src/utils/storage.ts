@@ -179,11 +179,11 @@ export class Storage {
     try {
       const storage = await this.getStorageArea();
       const result = await storage.get(STORAGE_KEYS.PLACEHOLDER_MODE);
-      // Default to false (remove elements completely)
-      return result[STORAGE_KEYS.PLACEHOLDER_MODE] === true;
+      // Default to true (show placeholders) if not set
+      return result[STORAGE_KEYS.PLACEHOLDER_MODE] !== false;
     } catch (error) {
       this.logStorageError('getPlaceholderMode', error);
-      return false;
+      return true;
     }
   }
 
