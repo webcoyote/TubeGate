@@ -383,27 +383,36 @@ class YouTubeFilter {
       blockedTermEl.textContent = `Blocked term: "${matchedFilter}"`;
       placeholder.appendChild(blockedTermEl);
 
-      // Add link if available
+      // Add link - always show it
+      const linkEl = document.createElement('div');
+      linkEl.style.cssText = `
+        font-size: 12px;
+        color: #606060;
+      `;
+
       if (videoInfo.url) {
-        const linkEl = document.createElement('a');
-        linkEl.href = videoInfo.url;
-        linkEl.target = '_blank';
-        linkEl.rel = 'noopener noreferrer';
-        linkEl.style.cssText = `
-          font-size: 12px;
+        const anchor = document.createElement('a');
+        anchor.href = videoInfo.url;
+        anchor.target = '_blank';
+        anchor.rel = 'noopener noreferrer';
+        anchor.style.cssText = `
           color: #065fd4;
           text-decoration: none;
-          word-break: break-all;
         `;
-        linkEl.textContent = 'View video';
-        linkEl.addEventListener('mouseenter', () => {
-          linkEl.style.textDecoration = 'underline';
+        anchor.textContent = videoInfo.url;
+        anchor.addEventListener('mouseenter', () => {
+          anchor.style.textDecoration = 'underline';
         });
-        linkEl.addEventListener('mouseleave', () => {
-          linkEl.style.textDecoration = 'none';
+        anchor.addEventListener('mouseleave', () => {
+          anchor.style.textDecoration = 'none';
         });
-        placeholder.appendChild(linkEl);
+        linkEl.appendChild(anchor);
+      } else {
+        linkEl.textContent = 'URL not available';
+        linkEl.style.fontStyle = 'italic';
       }
+
+      placeholder.appendChild(linkEl);
 
       // Replace the container with the placeholder
       container.replaceWith(placeholder);
@@ -444,7 +453,30 @@ class YouTubeFilter {
         }
       }
 
-      // Method 3: Look for title in aria-label attributes
+      // Method 3: Look for any anchor tag and extract href
+      if (!url) {
+        const anyLink = element.querySelector('a[href]');
+        if (anyLink) {
+          const href = anyLink.getAttribute('href');
+          if (href && (href.includes('/watch') || href.includes('/shorts') || href.includes('v='))) {
+            url = href.startsWith('http') ? href : `https://www.youtube.com${href}`;
+          }
+        }
+      }
+
+      // Method 4: Look for video ID in data attributes or element structure
+      if (!url) {
+        // Check for data-video-id attribute
+        const videoIdEl = element.querySelector('[data-video-id]');
+        if (videoIdEl) {
+          const videoId = videoIdEl.getAttribute('data-video-id');
+          if (videoId) {
+            url = `https://www.youtube.com/watch?v=${videoId}`;
+          }
+        }
+      }
+
+      // Method 5: Look for title in aria-label attributes
       if (!title) {
         const ariaElement = element.querySelector('[aria-label*="video" i], [aria-label*="short" i]');
         if (ariaElement) {
@@ -452,11 +484,19 @@ class YouTubeFilter {
         }
       }
 
-      // Method 4: Fallback to first heading text
+      // Method 6: Fallback to first heading text
       if (!title) {
         const heading = element.querySelector('h1, h2, h3, h4, .title');
         if (heading) {
           title = heading.textContent?.trim() || '';
+        }
+      }
+
+      // Method 7: Try to extract from element's own attributes
+      if (!url) {
+        const dataId = element.getAttribute('data-video-id');
+        if (dataId) {
+          url = `https://www.youtube.com/watch?v=${dataId}`;
         }
       }
 
