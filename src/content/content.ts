@@ -78,6 +78,7 @@ class YouTubeFilter {
       { selector: 'ytd-grid-video-renderer', description: 'Grid view (desktop)', lastSuccessTime: 0, failureCount: 0 },
       { selector: 'ytd-rich-item-renderer', description: 'Rich grid (new home desktop)', lastSuccessTime: 0, failureCount: 0 },
       { selector: 'ytd-compact-video-renderer', description: 'Sidebar (desktop)', lastSuccessTime: 0, failureCount: 0 },
+      { selector: 'yt-lockup-view-model', description: 'Lockup view (watch page recommendations)', lastSuccessTime: 0, failureCount: 0 },
       { selector: 'ytm-shorts-lockup-view-model', description: 'Shorts (mobile/desktop)', lastSuccessTime: 0, failureCount: 0 },
       { selector: 'ytd-reel-item-renderer', description: 'Shorts shelf (desktop)', lastSuccessTime: 0, failureCount: 0 },
       { selector: 'ytd-ad-slot-renderer', description: 'Ad slot containers', lastSuccessTime: 0, failureCount: 0 },
@@ -286,6 +287,7 @@ class YouTubeFilter {
         'ytd-video-renderer',           // Feed layout
         'ytd-grid-video-renderer',      // Grid layout
         'ytd-compact-video-renderer',   // Sidebar
+        'yt-lockup-view-model',         // Watch page recommendations
         'ytd-reel-item-renderer',       // Shorts
       ];
 
@@ -541,6 +543,7 @@ class YouTubeFilter {
       'ytd-video-renderer',
       'ytd-grid-video-renderer',
       'ytd-compact-video-renderer',
+      'yt-lockup-view-model',
       'ytd-reel-item-renderer',
     ];
 
