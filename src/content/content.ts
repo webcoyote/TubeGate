@@ -315,6 +315,9 @@ class YouTubeFilter {
       const width = rect.width || 300;
       const height = rect.height || 200;
 
+      // Hide container while keeping it in layout to avoid first reflow
+      container.style.visibility = 'hidden';
+
       // Create placeholder element
       const placeholder = document.createElement('div');
       placeholder.className = 'tubegate-placeholder';
