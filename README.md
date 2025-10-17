@@ -4,6 +4,9 @@ A Chrome extension that filters your YouTube feed by title and channel based on 
 
 No politics! No sports! No Faux News!
 
+https://chromewebstore.google.com/detail/tubegate/aokfpmegeafainbhjfhkgnhlodnndpck
+
+
 ## Features
 
 - Filter videos by channels and custom keywords

@@ -2,15 +2,15 @@
 
 ## Short Description (132 characters max)
 
-Control your YouTube feed by filtering videos based on keywords to hide unwanted content and focus on what matters to you.
+TubeGate removes unwanted videos from your YouTube feed
 
 ## Detailed Description
 
-Take control of your YouTube experience with TubeGate - a powerful, free, privacy-focused content filter that helps you curate your feed.
+Remove unwanted videos from YouTube with TubeGate - a powerful, free, privacy-focused video filter to curate your feed.
 
 WHAT IS TUBEGATE?
 
-TubeGate is a browser extension that filters YouTube videos based on keywords you specify. Simply add keywords to your filter list, and TubeGate automatically hides matching videos from your YouTube feed, search results, and recommended videos.
+TubeGate is a browser extension that removes YouTube videos based on keywords you choose. Add keywords to your filter list and TubeGate automatically hides matching videos from your YouTube feed, search results, and recommended videos.
 
 KEY FEATURES
 
