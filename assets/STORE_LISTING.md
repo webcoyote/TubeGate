@@ -8,51 +8,51 @@ Control your YouTube feed by filtering videos based on keywords to hide unwanted
 
 Take control of your YouTube experience with TubeGate - a powerful, privacy-focused content filter that helps you curate your feed.
 
-### What is TubeGate?
+WHAT IS TUBEGATE?
 
 TubeGate is a browser extension that filters YouTube videos based on keywords you specify. Simply add keywords to your filter list, and TubeGate automatically hides matching videos from your YouTube feed, search results, and recommended videos.
 
-### Key Features
+KEY FEATURES
 
-**Simple Keyword Filtering**
-- Add unlimited keywords to filter content
-- Case-insensitive matching
+Simple Keyword Filtering
+• Add unlimited keywords to filter content
+• Case-insensitive matching
 
-**Smart Filtering**
-- Filters video titles and channel names
-- Works on homepage, search results, and recommendations
-- Real-time filtering as you browse
-- Unobtrusive - filtered videos are simply hidden
+Smart Filtering
+• Filters video titles and channel names
+• Works on homepage, search results, and recommendations
+• Real-time filtering as you browse
+• Unobtrusive - filtered videos are simply hidden
 
-**Privacy First**
-- All filtering happens locally in your browser
-- No data collection or tracking
-- No external servers or analytics
-- Open source - review the code yourself
+Privacy First
+• All filtering happens locally in your browser
+• No data collection or tracking
+• No external servers or analytics
+• Open source - review the code yourself
 
-**Sync Across Devices (Optional)**
-- Enable Chrome sync to share filters across all your browsers
-- Or keep filters local to one device
-- You control where your data lives
+Sync Across Devices (Optional)
+• Enable Chrome sync to share filters across all your browsers
+• Or keep filters local to one device
+• You control where your data lives
 
-### Perfect For
+PERFECT FOR
 
-**Content Curation**
+Content Curation
 Filter out topics you're not interested in like sports or politics.
 
-**Focus & Productivity**
+Focus & Productivity
 Remove distracting content to stay focused on educational or work-related videos.
 
-**Managing Sponsored Content**
+Managing Sponsored Content
 Hide sponsored videos and promotional content.
 
-**Personalized Experience**
+Personalized Experience
 Create a YouTube feed that matches your interests by filtering irrelevant content.
 
-**Reducing Noise**
+Reducing Noise
 Clean up your feed by filtering clickbait, repetitive content, or oversaturated topics.
 
-### How It Works
+HOW IT WORKS
 
 1. Install TubeGate from the Chrome Web Store
 2. Click the extension icon to open settings
@@ -60,33 +60,33 @@ Clean up your feed by filtering clickbait, repetitive content, or oversaturated 
 4. Save your filters
 5. Browse YouTube as normal - matching videos are automatically hidden
 
-### Technical Details
+TECHNICAL DETAILS
 
-- Works on YouTube.com
-- Filters homepage, search results, and recommendations
-- No impact on video playback
-- Compatible with Chrome and Chromium-based browsers
+• Works on YouTube.com
+• Filters homepage, search results, and recommendations
+• No impact on video playback
+• Compatible with Chrome and Chromium-based browsers
 
-### Privacy & Security
+PRIVACY & SECURITY
 
 TubeGate respects your privacy:
-- No data collection
-- No analytics or tracking
-- No external API calls
-- No cookies
-- Open source code available on GitHub
+• No data collection
+• No analytics or tracking
+• No external API calls
+• No cookies
+• Open source code available on GitHub
 
 All your filters and settings stay on your device (or in Chrome sync if you enable it).
 
-### Support & Feedback
+SUPPORT & FEEDBACK
 
 Found a bug or have a feature request?
 
-- GitHub Issues: https://github.com/webcoyote/TubeGate/issues
-- Source Code: https://github.com/webcoyote/TubeGate
-- Privacy Policy: See PRIVACY.md in the repository
+• GitHub Issues: https://github.com/webcoyote/TubeGate/issues
+• Source Code: https://github.com/webcoyote/TubeGate
+• Privacy Policy: See PRIVACY.md in the repository
 
-### Open Source
+OPEN SOURCE
 
 TubeGate is free and open source software licensed under the Apache License 2.0. Contributions are welcome!
 
