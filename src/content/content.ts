@@ -30,7 +30,6 @@ class YouTubeFilter {
   private debounceTimer: number | null = null;
   private readonly DEBOUNCE_DELAY = 100; // milliseconds
   private enabled: boolean = true;
-  private placeholderMode: boolean = true;
   private selectorConfigs: SelectorConfig[] = [];
   private readonly MAX_SELECTOR_FAILURES = 10;
   private lastHealthCheck: number = 0;
@@ -41,7 +40,6 @@ class YouTubeFilter {
       this.initializeSelectors();
       await this.loadFilters();
       await this.loadEnabledState();
-      await this.loadPlaceholderMode();
       this.startObserving();
       this.filterExistingVideos();
 
@@ -56,12 +54,6 @@ class YouTubeFilter {
         if (changes.enabled !== undefined) {
           this.loadEnabledState().catch(error => {
             console.error('[YT Filter] Failed to reload enabled state:', error);
-          });
-          this.filterExistingVideos();
-        }
-        if (changes.placeholderMode !== undefined) {
-          this.loadPlaceholderMode().catch(error => {
-            console.error('[YT Filter] Failed to reload placeholder mode:', error);
           });
           this.filterExistingVideos();
         }
@@ -95,16 +87,6 @@ class YouTubeFilter {
       console.error('[YT Filter] Failed to load enabled state:', error);
       // Default to enabled on error
       this.enabled = true;
-    }
-  }
-
-  private async loadPlaceholderMode() {
-    try {
-      this.placeholderMode = await Storage.getPlaceholderMode();
-    } catch (error) {
-      console.error('[YT Filter] Failed to load placeholder mode:', error);
-      // Default to true on error
-      this.placeholderMode = true;
     }
   }
 
@@ -255,11 +237,7 @@ class YouTubeFilter {
       const matchedFilter = this.shouldFilterByText(allText);
       if (matchedFilter) {
         console.log(`[YT Filter] Blocked element containing <<${matchedFilter}>>`);
-        if (this.placeholderMode) {
-          this.replaceWithPlaceholder(element, matchedFilter);
-        } else {
-          this.removeVideo(element);
-        }
+        this.replaceWithPlaceholder(element, matchedFilter);
       }
     } catch (error) {
       console.error('[YT Filter] Error processing video element:', error);

@@ -24,7 +24,6 @@ class PopupController {
   private feedbackBtn: HTMLElement;
   private enabledToggle: HTMLInputElement;
   private syncToggle: HTMLInputElement;
-  private placeholderToggle: HTMLInputElement;
   private tabButtons: NodeListOf<HTMLElement>;
   private tabContents: NodeListOf<HTMLElement>;
 
@@ -35,7 +34,6 @@ class PopupController {
     this.feedbackBtn = document.getElementById('feedbackBtn')!;
     this.enabledToggle = document.getElementById('enabledToggle') as HTMLInputElement;
     this.syncToggle = document.getElementById('syncToggle') as HTMLInputElement;
-    this.placeholderToggle = document.getElementById('placeholderToggle') as HTMLInputElement;
     this.tabButtons = document.querySelectorAll('.tab-button');
     this.tabContents = document.querySelectorAll('.tab-content');
 
@@ -62,9 +60,6 @@ class PopupController {
 
     // Sync toggle
     this.syncToggle.addEventListener('change', () => this.toggleSync());
-
-    // Placeholder mode toggle
-    this.placeholderToggle.addEventListener('change', () => this.togglePlaceholder());
 
     // Tab switching
     this.tabButtons.forEach(button => {
@@ -126,11 +121,6 @@ class PopupController {
       this.syncToggle.checked = useSync;
       this.syncToggle.setAttribute('aria-checked', useSync.toString());
 
-      // Load placeholder mode state
-      const placeholderMode = await Storage.getPlaceholderMode();
-      this.placeholderToggle.checked = placeholderMode;
-      this.placeholderToggle.setAttribute('aria-checked', placeholderMode.toString());
-
       // Load custom filters into textarea
       await this.loadFiltersToTextarea();
 
@@ -177,19 +167,6 @@ class PopupController {
     }
   }
 
-  private async togglePlaceholder() {
-    try {
-      const placeholderMode = this.placeholderToggle.checked;
-      await Storage.setPlaceholderMode(placeholderMode);
-      this.placeholderToggle.setAttribute('aria-checked', placeholderMode.toString());
-    } catch (error) {
-      console.error('[Popup] Failed to toggle placeholder mode:', error);
-      // Revert the toggle state
-      this.placeholderToggle.checked = !this.placeholderToggle.checked;
-      this.placeholderToggle.setAttribute('aria-checked', this.placeholderToggle.checked.toString());
-      this.showError('Failed to save placeholder mode. Please try again.');
-    }
-  }
 
   private async loadFiltersToTextarea() {
     // Load the raw text if it exists, otherwise fall back to filters array
