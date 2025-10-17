@@ -6,7 +6,7 @@ Control your YouTube feed by filtering videos based on keywords to hide unwanted
 
 ## Detailed Description
 
-Take control of your YouTube experience with TubeGate - a powerful, privacy-focused content filter that helps you curate your feed.
+Take control of your YouTube experience with TubeGate - a powerful, free, privacy-focused content filter that helps you curate your feed.
 
 WHAT IS TUBEGATE?
 
@@ -88,7 +88,7 @@ Found a bug or have a feature request?
 
 OPEN SOURCE
 
-TubeGate is free and open source software licensed under the Apache License 2.0. Contributions are welcome!
+TubeGate is free and open source software licensed under the Apache License 2.0 Contributions are welcome!
 
 ---
 
