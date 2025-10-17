@@ -1,6 +1,6 @@
 {
   "name": "tubegate",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "TubeGate removes unwanted videos from your YouTube feed",
   "scripts": {
     "build": "webpack",
