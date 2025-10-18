@@ -28,12 +28,9 @@ class YouTubeFilter {
   private filters: Set<string> = new Set();
   private observer: MutationObserver | null = null;
   private debounceTimer: number | null = null;
-  private readonly DEBOUNCE_DELAY = 100; // milliseconds
   private enabled: boolean = true;
   private selectorConfigs: SelectorConfig[] = [];
-  private readonly MAX_SELECTOR_FAILURES = 10;
   private lastHealthCheck: number = 0;
-  private readonly HEALTH_CHECK_INTERVAL = 60000; // 1 minute
 
   async init() {
     try {
@@ -103,14 +100,14 @@ class YouTubeFilter {
 
   private startObserving() {
     this.observer = new MutationObserver((_mutations) => {
-      // Debounce the filtering to avoid excessive processing
+      // Use requestAnimationFrame to sync with browser render cycle
       if (this.debounceTimer !== null) {
-        clearTimeout(this.debounceTimer);
+        cancelAnimationFrame(this.debounceTimer);
       }
-      this.debounceTimer = window.setTimeout(() => {
+      this.debounceTimer = requestAnimationFrame(() => {
         this.filterExistingVideos();
         this.debounceTimer = null;
-      }, this.DEBOUNCE_DELAY);
+      });
     });
 
     this.observer.observe(document.body, {
@@ -300,8 +297,6 @@ class YouTubeFilter {
 
   private replaceWithPlaceholder(element: HTMLElement, matchedFilter: string) {
     try {
-      // Extract video information
-      const videoInfo = this.extractVideoInfo(element);
 
       // Find the appropriate parent container
       const container = this.findContainerToReplace(element);
@@ -310,13 +305,15 @@ class YouTubeFilter {
         return;
       }
 
+      // Hide container while keeping it in layout to avoid first reflow
+      container.style.opacity = '0.01';
+
       // Get dimensions of the container to maintain similar size
       const rect = container.getBoundingClientRect();
       const width = rect.width || 300;
       const height = rect.height || 200;
 
-      // Hide container while keeping it in layout to avoid first reflow
-      container.style.visibility = 'hidden';
+      const videoInfo = this.extractVideoInfo(element);
 
       // Create placeholder element
       const placeholder = document.createElement('div');
