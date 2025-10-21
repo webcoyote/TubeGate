@@ -34,6 +34,17 @@ class YouTubeFilter {
 
   async init() {
     try {
+      // Wait for document.body to exist if running at document_start
+      if (!document.body) {
+        await new Promise(resolve => {
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', resolve, { once: true });
+          } else {
+            resolve(null);
+          }
+        });
+      }
+
       this.initializeSelectors();
       await this.loadFilters();
       await this.loadEnabledState();
@@ -67,8 +78,12 @@ class YouTubeFilter {
       { selector: 'ytd-grid-video-renderer', description: 'Grid view (desktop)', lastSuccessTime: 0, failureCount: 0 },
       { selector: 'ytd-rich-item-renderer', description: 'Rich grid (new home desktop)', lastSuccessTime: 0, failureCount: 0 },
       { selector: 'ytd-compact-video-renderer', description: 'Sidebar (desktop)', lastSuccessTime: 0, failureCount: 0 },
+      { selector: 'ytd-radio-renderer', description: 'Radio/Mix playlists', lastSuccessTime: 0, failureCount: 0 },
+      { selector: 'ytd-playlist-renderer', description: 'Playlists', lastSuccessTime: 0, failureCount: 0 },
+      { selector: 'ytd-mix-renderer', description: 'Mix recommendations', lastSuccessTime: 0, failureCount: 0 },
       { selector: 'yt-lockup-view-model', description: 'Lockup view (watch page recommendations)', lastSuccessTime: 0, failureCount: 0 },
       { selector: 'ytm-shorts-lockup-view-model', description: 'Shorts (mobile/desktop)', lastSuccessTime: 0, failureCount: 0 },
+      { selector: 'ytm-shorts-lockup-view-model-v2', description: 'Shorts v2 (mobile/desktop)', lastSuccessTime: 0, failureCount: 0 },
       { selector: 'ytd-reel-item-renderer', description: 'Shorts shelf (desktop)', lastSuccessTime: 0, failureCount: 0 },
       { selector: 'ytd-ad-slot-renderer', description: 'Ad slot containers', lastSuccessTime: 0, failureCount: 0 },
       { selector: 'ytd-in-feed-ad-layout-renderer', description: 'In-feed ads', lastSuccessTime: 0, failureCount: 0 },
@@ -234,7 +249,8 @@ class YouTubeFilter {
       const matchedFilter = this.shouldFilterByText(allText);
       if (matchedFilter) {
         console.log(`[YT Filter] Blocked element containing <<${matchedFilter}>>`);
-        this.replaceWithPlaceholder(element, matchedFilter);
+        // Use the new method that only replaces the thumbnail
+        this.replaceThumbnailOnly(element, matchedFilter);
       }
     } catch (error) {
       console.error('[YT Filter] Error processing video element:', error);
@@ -292,6 +308,324 @@ class YouTubeFilter {
       } catch (hideError) {
         console.error('[YT Filter] Could not hide element:', hideError);
       }
+    }
+  }
+
+  private replaceThumbnailOnly(element: HTMLElement, matchedFilter: string) {
+    try {
+      // FIRST: Immediately disable ALL hover functionality on the entire element
+      // This needs to happen before YouTube can detect any hover
+      element.style.pointerEvents = 'none';
+
+      // Remove all existing event listeners by cloning the element
+      const newElement = element.cloneNode(true) as HTMLElement;
+      element.parentNode?.replaceChild(newElement, element);
+      element = newElement;
+
+      // Disable hover previews at the container level
+      element.setAttribute('data-tubegate-blocked', 'true');
+      element.style.cssText += `
+        pointer-events: none !important;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+      `;
+
+      // Find and disable all interactive elements within
+      const allInteractiveElements = element.querySelectorAll('a, button, [role="button"], [onclick], [onmouseenter], [onmouseover]');
+      allInteractiveElements.forEach(el => {
+        (el as HTMLElement).style.pointerEvents = 'none';
+        el.removeAttribute('onclick');
+        el.removeAttribute('onmouseenter');
+        el.removeAttribute('onmouseover');
+        el.removeAttribute('href');
+      });
+      // Find thumbnail elements within the video container
+      const thumbnailSelectors = [
+        'ytd-thumbnail',
+        'yt-thumbnail',
+        'ytm-thumbnail',
+        'a#thumbnail',
+        'div#thumbnail',
+        '.ytd-thumbnail',
+        '.yt-thumbnail',
+        '.thumbnail-container',
+        '.shortsLockupViewModelHostThumbnailContainer',
+        '.shortsLockupViewModelHostThumbnailParentContainer',
+        '.media-item-thumbnail-container',
+        '.video-thumb',
+        '.ytp-cued-thumbnail-overlay-image'
+      ];
+
+      let thumbnailElement: HTMLElement | null = null;
+
+      // Try to find the thumbnail element, but exclude badge elements
+      for (const selector of thumbnailSelectors) {
+        const candidates = element.querySelectorAll(selector) as NodeListOf<HTMLElement>;
+        for (let i = 0; i < candidates.length; i++) {
+          const candidate = candidates[i];
+          // Skip if this is a badge or inside a badge
+          if (!candidate.closest('badge-shape, yt-badge-view-model, ytd-badge-supported-renderer')) {
+            thumbnailElement = candidate;
+            break;
+          }
+        }
+        if (thumbnailElement) break;
+      }
+
+      // If no thumbnail found within the element, check if the element itself is the thumbnail container
+      if (!thumbnailElement) {
+        // Check if element itself matches any thumbnail selector and is not a badge
+        for (const selector of thumbnailSelectors) {
+          if (element.matches(selector) && !element.closest('badge-shape, yt-badge-view-model, ytd-badge-supported-renderer')) {
+            thumbnailElement = element;
+            break;
+          }
+        }
+      }
+
+      // If still no thumbnail, look for any element with thumbnail in the class or id (but not badges)
+      if (!thumbnailElement) {
+        const candidates = element.querySelectorAll('[id*="thumbnail"], [class*="thumbnail"]:not(badge-shape):not([class*="badge"])') as NodeListOf<HTMLElement>;
+        for (let i = 0; i < candidates.length; i++) {
+          const candidate = candidates[i];
+          if (!candidate.closest('badge-shape, yt-badge-view-model, ytd-badge-supported-renderer')) {
+            thumbnailElement = candidate;
+            break;
+          }
+        }
+      }
+
+      // If we couldn't find a thumbnail element, fall back to the old method
+      if (!thumbnailElement) {
+        console.warn('[YT Filter] Could not find thumbnail element, falling back to full replacement');
+        this.replaceWithPlaceholder(element, matchedFilter);
+        return;
+      }
+
+      // Find ALL image elements within the thumbnail container
+      const imageSelectors = [
+        'img',
+        'yt-image img',
+        '.yt-core-image',
+        '.ytCoreImageHost',
+        'img#img',
+        '[role="img"]'
+      ];
+
+      // First, try to find and hide all images within the thumbnail
+      for (const selector of imageSelectors) {
+        const images = thumbnailElement.querySelectorAll(selector) as NodeListOf<HTMLElement>;
+        if (images.length > 0) {
+          images.forEach(img => {
+            // Hide the image
+            img.style.visibility = 'hidden';
+            img.style.opacity = '0';
+            // Remove src to prevent loading
+            if (img instanceof HTMLImageElement) {
+              img.src = '';
+              img.srcset = '';
+            }
+          });
+        }
+      }
+
+      // Also check if thumbnailElement itself is an image
+      if (thumbnailElement instanceof HTMLImageElement) {
+        thumbnailElement.style.visibility = 'hidden';
+        thumbnailElement.style.opacity = '0';
+        thumbnailElement.src = '';
+        thumbnailElement.srcset = '';
+      }
+
+      // Get the computed style of the thumbnail
+      const computedStyle = window.getComputedStyle(thumbnailElement);
+
+      // Create placeholder element for just the thumbnail
+      const placeholder = document.createElement('div');
+      placeholder.className = 'tubegate-thumbnail-placeholder';
+
+      // Instead of replacing, we'll overlay on top of the thumbnail
+      // This ensures we don't break YouTube's layout
+      placeholder.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #f5f5f5;
+        border: 1px solid #e0e0e0;
+        border-radius: ${computedStyle.borderRadius || '8px'};
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-sizing: border-box;
+        font-family: "Roboto", "Arial", sans-serif;
+        z-index: 9999;
+        cursor: not-allowed;
+        pointer-events: auto !important;
+      `;
+
+      // Add blocked indicator in the center
+      const blockedIndicator = document.createElement('div');
+      blockedIndicator.style.cssText = `
+        padding: 8px 12px;
+        background-color: rgba(0, 0, 0, 0.8);
+        border-radius: 4px;
+        color: white;
+        font-size: 12px;
+        text-align: center;
+        max-width: 80%;
+      `;
+
+      const blockedText = document.createElement('div');
+      blockedText.style.cssText = `
+        font-weight: bold;
+        margin-bottom: 4px;
+      `;
+      blockedText.textContent = 'Video Blocked';
+
+      const filterText = document.createElement('div');
+      filterText.style.cssText = `
+        font-size: 10px;
+        opacity: 0.9;
+      `;
+      filterText.textContent = `Filter: "${matchedFilter}"`;
+
+      blockedIndicator.appendChild(blockedText);
+      blockedIndicator.appendChild(filterText);
+      placeholder.appendChild(blockedIndicator);
+
+      // Make sure the thumbnail container has position relative for our absolute positioning
+      if (window.getComputedStyle(thumbnailElement).position === 'static') {
+        thumbnailElement.style.position = 'relative';
+      }
+
+      // Prevent ALL mouse events on the placeholder to stop video preview
+      const blockAllEvents = (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      };
+
+      // Add event listeners to block all interactions
+      placeholder.onclick = blockAllEvents;
+      placeholder.onmouseenter = blockAllEvents;
+      placeholder.onmouseover = blockAllEvents;
+      placeholder.onmousemove = blockAllEvents;
+      placeholder.onmousedown = blockAllEvents;
+      placeholder.onmouseup = blockAllEvents;
+      placeholder.addEventListener('pointerenter', blockAllEvents, true);
+      placeholder.addEventListener('pointerover', blockAllEvents, true);
+      placeholder.addEventListener('pointermove', blockAllEvents, true);
+
+      // Also block pointer events via CSS
+      placeholder.style.pointerEvents = 'auto'; // Make sure it captures events
+
+      // Insert our placeholder as an overlay inside the thumbnail container
+      thumbnailElement.appendChild(placeholder);
+
+      // Disable hover preview on the parent container
+      thumbnailElement.style.pointerEvents = 'none';
+
+      // Re-enable pointer events ONLY on our overlay to block them
+      placeholder.style.pointerEvents = 'auto';
+
+      // Find and stop any video elements that might be playing ANYWHERE on the page
+      const stopVideoPreviews = () => {
+        // Find any video elements within the container AND in the entire document
+        const videos = document.querySelectorAll('video');
+        videos.forEach(video => {
+          // Check if this video is related to our blocked element
+          const videoContainer = video.closest('ytd-video-renderer, ytd-grid-video-renderer, ytd-rich-item-renderer, ytd-compact-video-renderer, ytd-radio-renderer, ytm-shorts-lockup-view-model, ytm-shorts-lockup-view-model-v2');
+          if (videoContainer && videoContainer.getAttribute('data-tubegate-blocked') === 'true') {
+            video.pause();
+            video.src = '';
+            video.muted = true;
+            video.remove();
+          }
+        });
+
+        // Also look for iframe previews
+        const iframes = element.querySelectorAll('iframe');
+        iframes.forEach(iframe => {
+          iframe.src = 'about:blank';
+          iframe.remove();
+        });
+
+        // Remove the mouseover overlay that YouTube uses for previews
+        const mouseoverOverlay = element.querySelector('#mouseover-overlay');
+        if (mouseoverOverlay) {
+          (mouseoverOverlay as HTMLElement).style.display = 'none';
+          mouseoverOverlay.remove();
+        }
+
+        // Remove hover overlays
+        const hoverOverlays = element.querySelector('#hover-overlays');
+        if (hoverOverlays) {
+          (hoverOverlays as HTMLElement).style.display = 'none';
+          hoverOverlays.remove();
+        }
+
+        // Also check for preview containers at the document level
+        const previewContainers = document.querySelectorAll('[class*="preview"], [id*="preview"]');
+        previewContainers.forEach(container => {
+          const relatedElement = container.closest('[data-tubegate-blocked="true"]');
+          if (relatedElement) {
+            (container as HTMLElement).style.display = 'none';
+            container.remove();
+          }
+        });
+      };
+
+      // Stop any current previews
+      stopVideoPreviews();
+
+      // Set up a mutation observer to stop any dynamically added videos
+      const previewObserver = new MutationObserver(() => {
+        stopVideoPreviews();
+      });
+
+      // Observe both the element AND the document body for preview insertions
+      previewObserver.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+
+      // Store the observer so we can disconnect it if needed
+      interface ElementWithTubeGate extends HTMLElement {
+        __tubegate_preview_observer?: MutationObserver;
+        __tubegate_preview_interval?: number;
+      }
+      (element as ElementWithTubeGate).__tubegate_preview_observer = previewObserver;
+
+      // Also set up an interval to continuously check for videos (as a fallback)
+      const intervalId = setInterval(() => {
+        if (!document.contains(element)) {
+          clearInterval(intervalId);
+          return;
+        }
+        stopVideoPreviews();
+      }, 500);
+
+      (element as ElementWithTubeGate).__tubegate_preview_interval = intervalId;
+
+      // Also disable any links within the thumbnail
+      const links = thumbnailElement.querySelectorAll('a');
+      links.forEach(link => {
+        link.style.pointerEvents = 'none';
+        link.onclick = blockAllEvents;
+      });
+
+      console.log('[YT Filter] Successfully overlaid thumbnail blocker, metadata preserved, hover disabled');
+
+      // Return the new element reference in case it was cloned
+      return newElement;
+    } catch (error) {
+      console.error('[YT Filter] Error replacing thumbnail:', error);
+      // Fall back to the full replacement method if there's an error
+      this.replaceWithPlaceholder(element, matchedFilter);
     }
   }
 

@@ -42,7 +42,17 @@ class PopupController {
 
   private async init() {
     this.setupEventListeners();
+    this.loadVersion();
     await this.loadData();
+  }
+
+  private loadVersion() {
+    const manifest = chrome.runtime.getManifest();
+    const version = manifest.version_name || manifest.version;
+    const versionDisplay = document.getElementById('versionDisplay');
+    if (versionDisplay) {
+      versionDisplay.textContent = `v${version}`;
+    }
   }
 
   private setupEventListeners() {
