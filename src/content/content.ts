@@ -210,13 +210,21 @@ class YouTubeFilter {
 
     // Check if element is within the primary video player container
     // YouTube's watch page has the main video in #player or #primary-inner
-    const playerContainer = element.closest('#player, #movie_player, ytd-watch-flexy #primary-inner');
+    const playerContainer = element.closest('#player, #movie_player, ytd-watch-flexy #primary-inner, ytd-watch-flexy #primary, ytd-player');
     if (playerContainer) {
-      // Additional check: main video is typically in the top portion and has specific classes
-      const videoContainer = element.closest('ytd-player, #ytd-player');
-      if (videoContainer) {
-        return true;
-      }
+      return true;
+    }
+
+    // Additional check: element is within the main video container
+    const videoContainer = element.closest('ytd-player, #ytd-player, .html5-video-player');
+    if (videoContainer) {
+      return true;
+    }
+
+    // Check if this element is a parent/ancestor of the actual video player
+    const hasVideoPlayer = element.querySelector('video.html5-main-video, video.video-stream');
+    if (hasVideoPlayer) {
+      return true;
     }
 
     return false;
