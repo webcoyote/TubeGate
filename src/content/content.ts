@@ -45,6 +45,9 @@ class YouTubeFilter {
         });
       }
 
+      // Inject CSS to disable inline playback on blocked videos
+      this.injectDisablePlaybackCSS();
+
       this.initializeSelectors();
       await this.loadFilters();
       await this.loadEnabledState();
@@ -69,6 +72,38 @@ class YouTubeFilter {
     } catch (error) {
       console.error('[YT Filter] Failed to initialize:', error);
     }
+  }
+
+  private injectDisablePlaybackCSS() {
+    const style = document.createElement('style');
+    style.id = 'tubegate-disable-playback';
+    style.textContent = `
+      /* Disable inline playback on blocked videos */
+      [data-tubegate-blocked="true"] ytd-thumbnail video,
+      [data-tubegate-blocked="true"] yt-thumbnail video,
+      [data-tubegate-blocked="true"] ytm-thumbnail video,
+      [data-tubegate-blocked="true"] ytd-moving-thumbnail-renderer,
+      [data-tubegate-blocked="true"] ytd-thumbnail-overlay-playback-status-renderer {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+
+      /* Prevent hover effects on blocked video thumbnails */
+      [data-tubegate-blocked="true"]:hover ytd-thumbnail,
+      [data-tubegate-blocked="true"]:hover yt-thumbnail,
+      [data-tubegate-blocked="true"]:hover ytm-thumbnail {
+        cursor: default !important;
+      }
+
+      /* Disable any inline playback containers */
+      [data-tubegate-blocked="true"] [data-inline-playback],
+      [data-inline-playback-disabled="true"] {
+        pointer-events: none !important;
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   private initializeSelectors() {
@@ -324,6 +359,22 @@ class YouTubeFilter {
       // Disable hover previews at the container level
       element.setAttribute('data-tubegate-blocked', 'true');
 
+      // Disable YouTube's inline playback feature
+      element.removeAttribute('data-inline-playback');
+      element.setAttribute('data-inline-playback-disabled', 'true');
+
+      // Find the ytd-thumbnail element specifically and disable its hover behavior
+      const ytdThumbnails = element.querySelectorAll('ytd-thumbnail, yt-thumbnail, ytm-thumbnail');
+      ytdThumbnails.forEach(thumb => {
+        (thumb as HTMLElement).removeAttribute('data-inline-playback');
+        thumb.setAttribute('data-inline-playback-disabled', 'true');
+        // Disable the moving thumbnail preview feature
+        const movingThumbnail = thumb.querySelector('ytd-moving-thumbnail-renderer, ytd-thumbnail-overlay-playback-status-renderer');
+        if (movingThumbnail) {
+          (movingThumbnail as HTMLElement).remove();
+        }
+      });
+
       // Find and disable all interactive elements within
       const allInteractiveElements = element.querySelectorAll('a, button, [role="button"], [onclick], [onmouseenter], [onmouseover]');
       allInteractiveElements.forEach(el => {
@@ -537,9 +588,15 @@ class YouTubeFilter {
             video.pause();
             video.src = '';
             video.muted = true;
+            video.autoplay = false;
+            video.removeAttribute('autoplay');
             video.remove();
           }
         });
+
+        // Remove ytd-moving-thumbnail-renderer elements (inline playback previews)
+        const movingThumbnails = element.querySelectorAll('ytd-moving-thumbnail-renderer');
+        movingThumbnails.forEach(mt => mt.remove());
 
         // Also look for iframe previews
         const iframes = element.querySelectorAll('iframe');
