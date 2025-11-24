@@ -321,22 +321,8 @@ class YouTubeFilter {
 
   private replaceThumbnailOnly(element: HTMLElement, matchedFilter: string) {
     try {
-      // FIRST: Immediately disable ALL hover functionality on the entire element
-      // This needs to happen before YouTube can detect any hover
-      element.style.pointerEvents = 'none';
-
-      // Remove all existing event listeners by cloning the element
-      const newElement = element.cloneNode(true) as HTMLElement;
-      element.parentNode?.replaceChild(newElement, element);
-      element = newElement;
-
       // Disable hover previews at the container level
       element.setAttribute('data-tubegate-blocked', 'true');
-      element.style.cssText += `
-        pointer-events: none !important;
-        user-select: none !important;
-        -webkit-user-select: none !important;
-      `;
 
       // Find and disable all interactive elements within
       const allInteractiveElements = element.querySelectorAll('a, button, [role="button"], [onclick], [onmouseenter], [onmouseover]');
@@ -345,7 +331,7 @@ class YouTubeFilter {
         el.removeAttribute('onclick');
         el.removeAttribute('onmouseenter');
         el.removeAttribute('onmouseover');
-        el.removeAttribute('href');
+        // Don't remove href as it might be used for other purposes
       });
       // Find thumbnail elements within the video container
       const thumbnailSelectors = [
@@ -627,9 +613,6 @@ class YouTubeFilter {
       });
 
       console.log('[YT Filter] Successfully overlaid thumbnail blocker, metadata preserved, hover disabled');
-
-      // Return the new element reference in case it was cloned
-      return newElement;
     } catch (error) {
       console.error('[YT Filter] Error replacing thumbnail:', error);
       // Fall back to the full replacement method if there's an error
