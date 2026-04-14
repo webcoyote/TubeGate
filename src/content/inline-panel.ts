@@ -324,6 +324,10 @@ export class InlineFilterPanel {
         this.syncVisibility();
       }
     });
+
+    document.addEventListener('fullscreenchange', () => {
+      this.syncVisibility();
+    });
   }
 
   async ensureInjected(): Promise<boolean> {
@@ -390,7 +394,7 @@ export class InlineFilterPanel {
 
   private async syncVisibility() {
     if (!this.hostElement) return;
-    const show = await Storage.getShowPill();
+    const show = await Storage.getShowPill() && !document.fullscreenElement;
     this.hostElement.style.display = show ? '' : 'none';
     if (!show && this.isOpen) {
       this.isOpen = false;
