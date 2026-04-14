@@ -16,6 +16,7 @@
  */
 
 import { Storage } from '../utils/storage';
+import { InlineFilterPanel } from './inline-panel';
 
 interface SelectorConfig {
   selector: string;
@@ -30,6 +31,7 @@ class YouTubeFilter {
   private debounceTimer: number | null = null;
   private enabled: boolean = true;
   private selectorConfigs: SelectorConfig[] = [];
+  private inlinePanel: InlineFilterPanel = new InlineFilterPanel();
 
   async init() {
     try {
@@ -50,7 +52,7 @@ class YouTubeFilter {
       this.startObserving();
       this.filterExistingVideos();
 
-      // Listen for filter updates from popup
+      // Listen for filter updates from popup or inline panel
       chrome.storage.onChanged.addListener((changes) => {
         if (changes.customFilters || changes.enabled !== undefined) {
           this.loadFilters()
@@ -65,6 +67,14 @@ class YouTubeFilter {
               console.error('[YT Filter] Failed to reload:', error);
             });
         }
+      });
+
+      // Inject inline filter panel into YouTube sidebar
+      this.inlinePanel.ensureInjected();
+
+      // Handle YouTube SPA navigation
+      document.addEventListener('yt-navigate-finish', () => {
+        this.inlinePanel.ensureInjected();
       });
     } catch (error) {
       console.error('[YT Filter] Failed to initialize:', error);
@@ -312,6 +322,8 @@ class YouTubeFilter {
         z-index: 9999;
         pointer-events: auto;
         cursor: default;
+        opacity: 0;
+        transition: opacity 0.4s ease-in;
       `;
 
       const label = document.createElement('span');
@@ -326,6 +338,13 @@ class YouTubeFilter {
       overlay.appendChild(label);
 
       overlayParent.appendChild(overlay);
+
+      // Trigger fade-in animation (double-rAF ensures browser has painted at opacity 0)
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          overlay.style.opacity = '1';
+        });
+      });
     } catch (error) {
       console.error('[YT Filter] Error blocking video:', error);
     }
@@ -346,6 +365,7 @@ class YouTubeFilter {
       this.observer.disconnect();
     }
     this.unblockAll();
+    this.inlinePanel.destroy();
   }
 }
 
