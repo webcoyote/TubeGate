@@ -68,7 +68,7 @@ export class Storage {
     try {
       const storage = await this.getStorageArea();
       const result = await storage.get(STORAGE_KEYS.CUSTOM_FILTERS);
-      return result[STORAGE_KEYS.CUSTOM_FILTERS] || [];
+      return (result[STORAGE_KEYS.CUSTOM_FILTERS] as string[] | undefined) || [];
     } catch (error) {
       this.logStorageError('getCustomFilters', error);
       return [];
@@ -95,7 +95,7 @@ export class Storage {
     try {
       const storage = await this.getStorageArea();
       const result = await storage.get(STORAGE_KEYS.CUSTOM_FILTERS_TEXT);
-      return result[STORAGE_KEYS.CUSTOM_FILTERS_TEXT] || '';
+      return (result[STORAGE_KEYS.CUSTOM_FILTERS_TEXT] as string | undefined) || '';
     } catch (error) {
       this.logStorageError('getCustomFiltersText', error);
       return '';
