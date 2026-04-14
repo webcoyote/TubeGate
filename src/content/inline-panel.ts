@@ -320,12 +320,16 @@ export class InlineFilterPanel {
       if (changes.enabled !== undefined) {
         this.syncEnabledState();
       }
+      if (changes.showPill !== undefined) {
+        this.syncVisibility();
+      }
     });
   }
 
-  ensureInjected(): boolean {
+  async ensureInjected(): Promise<boolean> {
     // Already injected and still in DOM
     if (this.hostElement && document.contains(this.hostElement)) {
+      await this.syncVisibility();
       return true;
     }
 
@@ -380,7 +384,19 @@ export class InlineFilterPanel {
     this.syncEnabledState();
 
     document.body.appendChild(this.hostElement);
+    await this.syncVisibility();
     return true;
+  }
+
+  private async syncVisibility() {
+    if (!this.hostElement) return;
+    const show = await Storage.getShowPill();
+    this.hostElement.style.display = show ? '' : 'none';
+    if (!show && this.isOpen) {
+      this.isOpen = false;
+      const panel = this.shadowRoot?.querySelector('.tubegate-panel') as HTMLElement | null;
+      if (panel) panel.classList.add('hidden');
+    }
   }
 
   private setupEventHandlers() {

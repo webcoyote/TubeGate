@@ -24,6 +24,7 @@ class PopupController {
   private feedbackBtn: HTMLElement;
   private enabledToggle: HTMLInputElement;
   private syncToggle: HTMLInputElement;
+  private pillToggle: HTMLInputElement;
   private tabButtons: NodeListOf<HTMLElement>;
   private tabContents: NodeListOf<HTMLElement>;
 
@@ -34,6 +35,7 @@ class PopupController {
     this.feedbackBtn = document.getElementById('feedbackBtn')!;
     this.enabledToggle = document.getElementById('enabledToggle') as HTMLInputElement;
     this.syncToggle = document.getElementById('syncToggle') as HTMLInputElement;
+    this.pillToggle = document.getElementById('pillToggle') as HTMLInputElement;
     this.tabButtons = document.querySelectorAll('.tab-button');
     this.tabContents = document.querySelectorAll('.tab-content');
 
@@ -70,6 +72,9 @@ class PopupController {
 
     // Sync toggle
     this.syncToggle.addEventListener('change', () => this.toggleSync());
+
+    // Pill overlay toggle
+    this.pillToggle.addEventListener('change', () => this.togglePill());
 
     // Tab switching
     this.tabButtons.forEach(button => {
@@ -131,6 +136,11 @@ class PopupController {
       this.syncToggle.checked = useSync;
       this.syncToggle.setAttribute('aria-checked', useSync.toString());
 
+      // Load pill overlay state
+      const showPill = await Storage.getShowPill();
+      this.pillToggle.checked = showPill;
+      this.pillToggle.setAttribute('aria-checked', showPill.toString());
+
       // Load custom filters into textarea
       await this.loadFiltersToTextarea();
 
@@ -177,6 +187,19 @@ class PopupController {
     }
   }
 
+
+  private async togglePill() {
+    try {
+      const showPill = this.pillToggle.checked;
+      await Storage.setShowPill(showPill);
+      this.pillToggle.setAttribute('aria-checked', showPill.toString());
+    } catch (error) {
+      console.error('[Popup] Failed to toggle pill state:', error);
+      this.pillToggle.checked = !this.pillToggle.checked;
+      this.pillToggle.setAttribute('aria-checked', this.pillToggle.checked.toString());
+      this.showError('Failed to save setting. Please try again.');
+    }
+  }
 
   private async loadFiltersToTextarea() {
     // Load the raw text if it exists, otherwise fall back to filters array

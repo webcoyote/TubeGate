@@ -174,4 +174,26 @@ export class Storage {
       }
     }
   }
+
+  static async getShowPill(): Promise<boolean> {
+    try {
+      const storage = await this.getStorageArea();
+      const result = await storage.get(STORAGE_KEYS.SHOW_PILL);
+      // Default to true (show pill)
+      return result[STORAGE_KEYS.SHOW_PILL] !== false;
+    } catch (error) {
+      this.logStorageError('getShowPill', error);
+      return true;
+    }
+  }
+
+  static async setShowPill(show: boolean): Promise<void> {
+    try {
+      const storage = await this.getStorageArea();
+      await storage.set({ [STORAGE_KEYS.SHOW_PILL]: show });
+    } catch (error) {
+      this.logStorageError('setShowPill', error);
+      throw error;
+    }
+  }
 }
