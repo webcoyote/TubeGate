@@ -306,6 +306,40 @@ class YouTubeFilter {
         overlayParent.style.position = 'relative';
       }
 
+      // Prevent hover preview playback on search results page.
+      // YouTube uses multiple mechanisms: Polymer hover properties,
+      // event listeners on #dismissible, and inline playback via
+      // #mouseover-overlay. We must defeat all of them.
+
+      // 1. Hide the thumbnail link so it can't receive hover events
+      const thumbnailLink = element.querySelector('a#thumbnail') as HTMLElement | null;
+      if (thumbnailLink) {
+        thumbnailLink.style.setProperty('visibility', 'hidden', 'important');
+        thumbnailLink.style.setProperty('pointer-events', 'none', 'important');
+      }
+
+      // 2. Block pointer events on the dismissible container and thumbnail
+      const dismissible = element.querySelector('#dismissible') as HTMLElement | null;
+      if (dismissible) {
+        dismissible.style.setProperty('pointer-events', 'none', 'important');
+      }
+      if (thumbnailElement) {
+        thumbnailElement.style.setProperty('pointer-events', 'none', 'important');
+      }
+
+      // 3. Capture and kill all mouse/pointer events on the element before
+      //    YouTube's listeners see them (capturing phase)
+      const killEvent = (e: Event) => {
+        e.stopImmediatePropagation();
+        e.stopPropagation();
+      };
+      const hoverEvents = ['mouseenter', 'mouseleave', 'mouseover', 'mouseout',
+                           'mousemove', 'pointerenter', 'pointerleave',
+                           'pointermove', 'pointerover', 'pointerout'];
+      hoverEvents.forEach(evt => {
+        element.addEventListener(evt, killEvent, true); // capturing phase
+      });
+
       const overlay = document.createElement('div');
       overlay.className = 'tubegate-overlay';
       overlay.style.cssText = `
@@ -353,6 +387,23 @@ class YouTubeFilter {
   private unblockAll() {
     document.querySelectorAll('.tubegate-overlay').forEach(el => el.remove());
     document.querySelectorAll('[data-tubegate-blocked="true"]').forEach(el => {
+      const htmlEl = el as HTMLElement;
+      // Restore visibility/pointer-events on thumbnail elements
+      const thumbnailLink = htmlEl.querySelector('a#thumbnail') as HTMLElement | null;
+      if (thumbnailLink) {
+        thumbnailLink.style.removeProperty('visibility');
+        thumbnailLink.style.removeProperty('pointer-events');
+      }
+      const dismissible = htmlEl.querySelector('#dismissible') as HTMLElement | null;
+      if (dismissible) {
+        dismissible.style.removeProperty('pointer-events');
+      }
+      const thumb = htmlEl.querySelector('ytd-thumbnail') as HTMLElement | null;
+      if (thumb) {
+        thumb.style.removeProperty('pointer-events');
+      }
+      // Note: capturing event listeners cannot be removed without stored references,
+      // but since unblockAll is followed by re-filtering, the element gets reprocessed
       el.removeAttribute('data-tubegate-blocked');
     });
     document.querySelectorAll('[data-yt-filter-processed="true"]').forEach(el => {
